@@ -244,6 +244,67 @@ const ACTIONS = {
     return { ok: true, id };
   },
 
+  deleteAssignment({ id }) {
+    if (!id) return { ok: false, error: "Missing assignment id." };
+    const sheet = getSheet(SHEETS.ASSIGNMENTS);
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const idCol = headers.indexOf("id");
+    if (idCol === -1) return { ok: false, error: "id column not found." };
+    for (let r = data.length - 1; r >= 1; r--) {
+      if (String(data[r][idCol]) === String(id)) {
+        sheet.deleteRow(r + 1);
+        return { ok: true };
+      }
+    }
+    return { ok: false, error: "Assignment not found." };
+  },
+
+  deleteClass({ id }) {
+    if (!id) return { ok: false, error: "Missing class id." };
+    // Remove the class row
+    const classSheet = getSheet(SHEETS.CLASSES);
+    const cdata = classSheet.getDataRange().getValues();
+    const cheaders = cdata[0];
+    const cidCol = cheaders.indexOf("id");
+    let removed = false;
+    if (cidCol !== -1) {
+      for (let r = cdata.length - 1; r >= 1; r--) {
+        if (String(cdata[r][cidCol]) === String(id)) {
+          classSheet.deleteRow(r + 1);
+          removed = true;
+          break;
+        }
+      }
+    }
+    if (!removed) return { ok: false, error: "Class not found." };
+    // Cascade: also delete any assignments tied to this class
+    const aSheet = getSheet(SHEETS.ASSIGNMENTS);
+    const adata = aSheet.getDataRange().getValues();
+    const aheaders = adata[0];
+    const aClassCol = aheaders.indexOf("classId");
+    if (aClassCol !== -1) {
+      for (let r = adata.length - 1; r >= 1; r--) {
+        if (String(adata[r][aClassCol]) === String(id)) {
+          aSheet.deleteRow(r + 1);
+        }
+      }
+    }
+    return { ok: true };
+  },
+
+  removeStudentFromClass({ classId, studentEmail }) {
+    if (!classId || !studentEmail) return { ok: false, error: "Missing class id or student email." };
+    studentEmail = String(studentEmail).toLowerCase();
+    const cls = readAll(SHEETS.CLASSES).find(c => c.id === classId);
+    if (!cls) return { ok: false, error: "Class not found." };
+    const list = (cls.studentsCsv || "").split(",")
+      .map(s => s.trim()).filter(Boolean)
+      .filter(e => e.toLowerCase() !== studentEmail);
+    updateRow(SHEETS.CLASSES, "id", classId, { studentsCsv: list.join(",") });
+    return { ok: true };
+  },
+
   submitDrawing({ email, drawingId, imageData }) {
     email = email.toLowerCase();
     // Replace any prior unmarked drawing for the same student/task
