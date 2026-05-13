@@ -1957,12 +1957,43 @@ const mockAPI = {
     this._set("classes", classes);
     return { ok:true };
   },
+  deleteClass({ id }){
+    if(!id) return { ok:false, error:"Missing class id." };
+    const classes = this._get("classes", []);
+    const before = classes.length;
+    const after = classes.filter(c => c.id !== id);
+    if(after.length === before) return { ok:false, error:"Class not found." };
+    this._set("classes", after);
+    // Also delete any homework assignments tied to this class
+    const assigns = this._get("assignments", []);
+    this._set("assignments", assigns.filter(a => a.classId !== id));
+    return { ok:true };
+  },
+  removeStudentFromClass({ classId, studentEmail }){
+    if(!classId || !studentEmail) return { ok:false, error:"Missing class id or student email." };
+    studentEmail = studentEmail.toLowerCase();
+    const classes = this._get("classes", []);
+    const c = classes.find(x => x.id === classId);
+    if(!c) return { ok:false, error:"Class not found." };
+    c.students = (c.students || []).filter(e => String(e).toLowerCase() !== studentEmail);
+    this._set("classes", classes);
+    return { ok:true };
+  },
   assignHomework({ classId, taskType, topic, dueDate, createdBy }){
     const arr = this._get("assignments", []);
     const id = "a_" + Date.now();
     arr.push({ id, classId, taskType, topic, dueDate, createdBy:createdBy.toLowerCase(), createdAt:new Date().toISOString() });
     this._set("assignments", arr);
     return { ok:true, id };
+  },
+  deleteAssignment({ id }){
+    if(!id) return { ok:false, error:"Missing assignment id." };
+    const arr = this._get("assignments", []);
+    const before = arr.length;
+    const after = arr.filter(a => a.id !== id);
+    if(after.length === before) return { ok:false, error:"Assignment not found." };
+    this._set("assignments", after);
+    return { ok:true };
   },
   markWritten({ submissionId, mark, feedback, markedBy }){
     const arr = this._get("written", []);
@@ -2591,19 +2622,62 @@ function renderClassesList(){
   teacherData.classes.forEach(c=>{
     const card = document.createElement("div");
     card.className = "q-block";
+    const safeName = c.name.replace(/'/g,"\\'");
+    const studentChips = (c.students||[]).map(email => `
+      <span style="display:inline-flex;align-items:center;gap:.25rem;background:var(--bg);border:1px solid var(--border);padding:.15rem .4rem .15rem .55rem;border-radius:999px;font-size:.78rem;color:var(--text);margin:.15rem">
+        ${email}
+        <button data-rm-class="${c.id}" data-rm-student="${email}" title="Remove from class"
+          style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.95rem;padding:0 .15rem;line-height:1">&times;</button>
+      </span>
+    `).join("");
     card.innerHTML = `
-      <div class="row" style="justify-content:space-between">
-        <div>
+      <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem">
+        <div style="flex:1;min-width:200px">
           <div class="q-num">CLASS ID ${c.id}</div>
           <div class="q-text" style="margin:.2rem 0">${c.name}</div>
           <div style="color:var(--muted);font-size:.88rem">${(c.students||[]).length} student${(c.students||[]).length===1?'':'s'}</div>
         </div>
-        <button class="btn btn-sm btn-secondary" onclick="openAddStudentModal('${c.id}','${c.name.replace(/'/g,"\\'")}')">Add student</button>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+          <button class="btn btn-sm btn-secondary" onclick="openAddStudentModal('${c.id}','${safeName}')">+ Add student</button>
+          <button class="btn btn-sm btn-danger" data-del-class="${c.id}" title="Delete this class">🗑 Delete class</button>
+        </div>
       </div>
-      ${(c.students||[]).length ? `<div style="margin-top:.6rem;font-size:.88rem;color:var(--muted)">${c.students.join(", ")}</div>` : ""}
+      ${(c.students||[]).length ? `<div style="margin-top:.6rem;display:flex;flex-wrap:wrap">${studentChips}</div>` : ""}
     `;
     box.appendChild(card);
   });
+  // Wire up delete-class buttons
+  box.querySelectorAll('button[data-del-class]').forEach(btn => {
+    btn.onclick = () => deleteClass(btn.dataset.delClass);
+  });
+  // Wire up remove-student-from-class chips
+  box.querySelectorAll('button[data-rm-class]').forEach(btn => {
+    btn.onclick = () => removeStudentFromClass(btn.dataset.rmClass, btn.dataset.rmStudent);
+  });
+}
+
+async function deleteClass(classId){
+  const c = teacherData.classes.find(x => x.id === classId);
+  if(!c) return;
+  const n = (c.students||[]).length;
+  if(!confirm(`Delete the class "${c.name}"?\n\n${n} student${n===1?'':'s'} will be removed from this class. (Their accounts and revision data are kept — only the class link is removed.)\n\nThis cannot be undone.`)) return;
+  const r = await api("deleteClass", { id: classId });
+  if(r && r.ok){
+    await loadTeacherData();
+    renderClassesList(); renderTeacherHome(); renderProgress(); renderAssignForm(); renderAssignList();
+  } else {
+    alert((r && r.error) || "Could not delete class.");
+  }
+}
+async function removeStudentFromClass(classId, studentEmail){
+  if(!confirm(`Remove ${studentEmail} from this class?\n\nTheir account and revision data are kept; only the class link is removed.`)) return;
+  const r = await api("removeStudentFromClass", { classId, studentEmail });
+  if(r && r.ok){
+    await loadTeacherData();
+    renderClassesList(); renderTeacherHome(); renderProgress();
+  } else {
+    alert((r && r.error) || "Could not remove student.");
+  }
 }
 
 function openCreateClassModal(){
@@ -2775,14 +2849,38 @@ function renderAssignList(){
     const locked = release > todayStr;
     const releaseTxt = locked ? ` &middot; <span style="color:var(--muted)">🔒 unlocks ${new Date(release).toLocaleDateString("en-GB")}</span>` : "";
     div.innerHTML = `
-      <div>
+      <div style="flex:1;min-width:200px">
         <div class="q-num">${(cls?cls.name:'Class')} &middot; ${a.taskType.toUpperCase()} &middot; ${a.topic}</div>
         <div style="color:var(--muted);font-size:.85rem;margin-top:.2rem">Due ${due.toLocaleDateString("en-GB")}${releaseTxt}</div>
+        ${a.note ? `<div style="margin-top:.4rem;background:#fef6e6;border-left:3px solid var(--accent);padding:.4rem .65rem;border-radius:6px;font-size:.85rem">📝 ${a.note}</div>` : ""}
       </div>
-      <span class="badge ${overdue?'due':'upcoming'}">${locked ? 'LOCKED' : (overdue?'OVERDUE':'OPEN')}</span>
+      <div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap">
+        <span class="badge ${overdue?'due':'upcoming'}">${locked ? 'LOCKED' : (overdue?'OVERDUE':'OPEN')}</span>
+        <button class="btn btn-sm btn-danger" data-del="${a.id}" title="Delete this homework">🗑 Delete</button>
+      </div>
     `;
     box.appendChild(div);
   });
+  // Wire up the delete buttons
+  box.querySelectorAll('button[data-del]').forEach(btn => {
+    btn.onclick = () => deleteAssignment(btn.dataset.del);
+  });
+}
+
+async function deleteAssignment(assignmentId){
+  const a = (teacherData.assignments || []).find(x => x.id === assignmentId);
+  if(!a) return;
+  const cls = teacherData.classes.find(c => c.id === a.classId);
+  const label = `${(cls ? cls.name : 'Class')} · ${a.taskType.toUpperCase()} · ${a.topic} · due ${new Date(a.dueDate).toLocaleDateString("en-GB")}`;
+  if(!confirm(`Delete this homework?\n\n${label}\n\nStudents will no longer see it on their Home or Homework tabs. This cannot be undone.`)) return;
+  const r = await api("deleteAssignment", { id: assignmentId });
+  if(r && r.ok){
+    await loadTeacherData();
+    renderAssignList();
+    renderTeacherHome();
+  } else {
+    alert((r && r.error) || "Could not delete homework. Try again.");
+  }
 }
 document.getElementById("assign-form").addEventListener("submit", async e=>{
   e.preventDefault();
