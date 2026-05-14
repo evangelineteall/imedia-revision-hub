@@ -1941,9 +1941,34 @@ const mockAPI = {
   createClass({ teacherEmail, name }){
     const arr = this._get("classes", []);
     const id = "c_" + Date.now();
-    arr.push({ id, name, teacherEmail:teacherEmail.toLowerCase(), students:[] });
+    arr.push({ id, name, teacherEmail:teacherEmail.toLowerCase(), students:[], sharedWith:[] });
     this._set("classes", arr);
     return { ok:true, id };
+  },
+  shareClass({ classId, teacherEmail }){
+    if(!classId || !teacherEmail) return { ok:false, error:"Missing class id or teacher email." };
+    teacherEmail = teacherEmail.toLowerCase();
+    const u = this._get("users", []).find(u => u.email.toLowerCase() === teacherEmail);
+    if(!u) return { ok:false, error:"No registered teacher with that email." };
+    if(u.role !== "teacher") return { ok:false, error:"That account is not a teacher." };
+    const classes = this._get("classes", []);
+    const c = classes.find(x => x.id === classId);
+    if(!c) return { ok:false, error:"Class not found." };
+    if(c.teacherEmail.toLowerCase() === teacherEmail) return { ok:false, error:"That teacher already owns this class." };
+    if(!c.sharedWith) c.sharedWith = [];
+    if(!c.sharedWith.includes(teacherEmail)) c.sharedWith.push(teacherEmail);
+    this._set("classes", classes);
+    return { ok:true };
+  },
+  unshareClass({ classId, teacherEmail }){
+    if(!classId || !teacherEmail) return { ok:false, error:"Missing class id or teacher email." };
+    teacherEmail = teacherEmail.toLowerCase();
+    const classes = this._get("classes", []);
+    const c = classes.find(x => x.id === classId);
+    if(!c) return { ok:false, error:"Class not found." };
+    c.sharedWith = (c.sharedWith || []).filter(e => e.toLowerCase() !== teacherEmail);
+    this._set("classes", classes);
+    return { ok:true };
   },
   addStudent({ classId, studentEmail }){
     studentEmail = studentEmail.toLowerCase();
@@ -2017,7 +2042,11 @@ const mockAPI = {
   },
   getTeacherData({ email }){
     email = email.toLowerCase();
-    const classes = this._get("classes", []).filter(c => c.teacherEmail.toLowerCase() === email);
+    const classes = this._get("classes", []).filter(c => {
+      const owner = c.teacherEmail.toLowerCase() === email;
+      const shared = (c.sharedWith || []).map(e => String(e).toLowerCase()).includes(email);
+      return owner || shared;
+    }).map(c => ({ ...c, isOwner: c.teacherEmail.toLowerCase() === email }));
     const studentEmails = Array.from(new Set(classes.flatMap(c => c.students)));
     const userIndex = {};
     this._get("users", []).forEach(u => { userIndex[u.email.toLowerCase()] = u; });
@@ -2623,6 +2652,7 @@ function renderClassesList(){
     const card = document.createElement("div");
     card.className = "q-block";
     const safeName = c.name.replace(/'/g,"\\'");
+    const isOwner = c.isOwner !== false; // true if not explicitly false (back-compat with classes created before sharing)
     const studentChips = (c.students||[]).map(email => `
       <span style="display:inline-flex;align-items:center;gap:.25rem;background:var(--bg);border:1px solid var(--border);padding:.15rem .4rem .15rem .55rem;border-radius:999px;font-size:.78rem;color:var(--text);margin:.15rem">
         ${email}
@@ -2630,19 +2660,32 @@ function renderClassesList(){
           style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.95rem;padding:0 .15rem;line-height:1">&times;</button>
       </span>
     `).join("");
+    const teacherChips = [c.teacherEmail].concat(c.sharedWith || []).map(email => {
+      const isClassOwner = email.toLowerCase() === String(c.teacherEmail).toLowerCase();
+      const canUnshare = isOwner && !isClassOwner;
+      return `
+      <span style="display:inline-flex;align-items:center;gap:.25rem;background:${isClassOwner?'#eef3fa':'#fef6e6'};border:1px solid var(--border);padding:.15rem .4rem .15rem .55rem;border-radius:999px;font-size:.78rem;color:var(--text);margin:.15rem">
+        ${isClassOwner ? '👤' : '🤝'} ${email}${isClassOwner ? ' <span style="font-size:.7rem;color:var(--muted)">(owner)</span>' : ''}
+        ${canUnshare ? `<button data-unshare-class="${c.id}" data-unshare-teacher="${email}" title="Stop sharing with this teacher" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.95rem;padding:0 .15rem;line-height:1">&times;</button>` : ''}
+      </span>`;
+    }).join("");
     card.innerHTML = `
       <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem">
         <div style="flex:1;min-width:200px">
-          <div class="q-num">CLASS ID ${c.id}</div>
+          <div class="q-num">CLASS ID ${c.id}${isOwner ? '' : ' &middot; SHARED WITH YOU'}</div>
           <div class="q-text" style="margin:.2rem 0">${c.name}</div>
           <div style="color:var(--muted);font-size:.88rem">${(c.students||[]).length} student${(c.students||[]).length===1?'':'s'}</div>
         </div>
         <div style="display:flex;gap:.4rem;flex-wrap:wrap">
           <button class="btn btn-sm btn-secondary" onclick="openAddStudentModal('${c.id}','${safeName}')">+ Add student</button>
-          <button class="btn btn-sm btn-danger" data-del-class="${c.id}" title="Delete this class">🗑 Delete class</button>
+          ${isOwner ? `<button class="btn btn-sm btn-secondary" onclick="openShareClassModal('${c.id}','${safeName}')">🤝 Share</button>` : ''}
+          ${isOwner ? `<button class="btn btn-sm btn-danger" data-del-class="${c.id}" title="Delete this class">🗑 Delete class</button>` : ''}
         </div>
       </div>
-      ${(c.students||[]).length ? `<div style="margin-top:.6rem;display:flex;flex-wrap:wrap">${studentChips}</div>` : ""}
+      <div style="margin-top:.5rem;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600">Teachers</div>
+      <div style="margin-top:.2rem;display:flex;flex-wrap:wrap">${teacherChips}</div>
+      ${(c.students||[]).length ? `<div style="margin-top:.5rem;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600">Students</div>
+      <div style="margin-top:.2rem;display:flex;flex-wrap:wrap">${studentChips}</div>` : ""}
     `;
     box.appendChild(card);
   });
@@ -2654,6 +2697,39 @@ function renderClassesList(){
   box.querySelectorAll('button[data-rm-class]').forEach(btn => {
     btn.onclick = () => removeStudentFromClass(btn.dataset.rmClass, btn.dataset.rmStudent);
   });
+  // Wire up unshare-from-class chips (the × next to shared teacher emails)
+  box.querySelectorAll('button[data-unshare-class]').forEach(btn => {
+    btn.onclick = () => unshareClass(btn.dataset.unshareClass, btn.dataset.unshareTeacher);
+  });
+}
+
+function openShareClassModal(classId, className){
+  document.getElementById("modal-body").innerHTML = `
+    <h3>Share "${className}" with another teacher</h3>
+    <div class="field"><label>Teacher email</label><input type="email" id="share-teacher-email" placeholder="firstname.surname@ralphthoresby.com"></div>
+    <p style="font-size:.85rem;color:var(--muted)">The teacher must already have an account on this site. They'll be able to see and manage this class (assign homework, mark, etc.), but only you (the owner) can delete it.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="shareClass('${classId}')">Share</button>
+    </div>
+  `;
+  document.getElementById("modal-back").classList.add("show");
+}
+async function shareClass(classId){
+  const email = document.getElementById("share-teacher-email").value.trim().toLowerCase();
+  if(!email) return;
+  const r = await api("shareClass", { classId, teacherEmail: email });
+  closeModal();
+  if(r && r.ok){
+    await loadTeacherData(); renderClassesList(); renderTeacherHome();
+  } else alert((r && r.error) || "Could not share class.");
+}
+async function unshareClass(classId, teacherEmail){
+  if(!confirm(`Stop sharing this class with ${teacherEmail}?\n\nThey'll lose access to the class. (Their teacher account is kept.)`)) return;
+  const r = await api("unshareClass", { classId, teacherEmail });
+  if(r && r.ok){
+    await loadTeacherData(); renderClassesList(); renderTeacherHome();
+  } else alert((r && r.error) || "Could not unshare class.");
 }
 
 async function deleteClass(classId){
