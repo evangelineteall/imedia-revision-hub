@@ -26,7 +26,7 @@ const SHEETS = {
 
 const HEADERS = {
   Users:           ["email","name","role","passwordHash","lastActive"],
-  Classes:         ["id","name","teacherEmail","studentsCsv"],
+  Classes:         ["id","name","teacherEmail","studentsCsv","sharedWithCsv"],
   Quizzes:         ["timestamp","email","topic","score","total","taskType","details"],
   WrittenAnswers:  ["id","timestamp","email","questionId","answer","mark","feedback","markedBy"],
   Flashcards:      ["timestamp","email","term","status"],
@@ -214,9 +214,36 @@ const ACTIONS = {
     if (!teacherEmail || !name) return { ok: false, error: "Missing fields." };
     const id = "c_" + new Date().getTime();
     appendRow(SHEETS.CLASSES, {
-      id, name, teacherEmail: teacherEmail.toLowerCase(), studentsCsv: ""
+      id, name, teacherEmail: teacherEmail.toLowerCase(), studentsCsv: "", sharedWithCsv: ""
     });
     return { ok: true, id };
+  },
+
+  shareClass({ classId, teacherEmail }) {
+    if (!classId || !teacherEmail) return { ok: false, error: "Missing class id or teacher email." };
+    teacherEmail = String(teacherEmail).toLowerCase();
+    const u = findUser(teacherEmail);
+    if (!u) return { ok: false, error: "No registered teacher with that email." };
+    if (u.role !== "teacher") return { ok: false, error: "That account is not a teacher." };
+    const cls = readAll(SHEETS.CLASSES).find(c => c.id === classId);
+    if (!cls) return { ok: false, error: "Class not found." };
+    if (String(cls.teacherEmail).toLowerCase() === teacherEmail) return { ok: false, error: "That teacher already owns this class." };
+    const list = (cls.sharedWithCsv || "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+    if (!list.includes(teacherEmail)) list.push(teacherEmail);
+    updateRow(SHEETS.CLASSES, "id", classId, { sharedWithCsv: list.join(",") });
+    return { ok: true };
+  },
+
+  unshareClass({ classId, teacherEmail }) {
+    if (!classId || !teacherEmail) return { ok: false, error: "Missing class id or teacher email." };
+    teacherEmail = String(teacherEmail).toLowerCase();
+    const cls = readAll(SHEETS.CLASSES).find(c => c.id === classId);
+    if (!cls) return { ok: false, error: "Class not found." };
+    const list = (cls.sharedWithCsv || "").split(",")
+      .map(s => s.trim()).filter(Boolean)
+      .filter(e => e.toLowerCase() !== teacherEmail);
+    updateRow(SHEETS.CLASSES, "id", classId, { sharedWithCsv: list.join(",") });
+    return { ok: true };
   },
 
   addStudent({ classId, studentEmail }) {
@@ -399,12 +426,18 @@ const ACTIONS = {
   getTeacherData({ email }) {
     email = email.toLowerCase();
     const classes = readAll(SHEETS.CLASSES)
-      .filter(c => String(c.teacherEmail).toLowerCase() === email)
+      .filter(c => {
+        const owner = String(c.teacherEmail).toLowerCase() === email;
+        const shared = (c.sharedWithCsv||"").split(",").map(s=>s.trim().toLowerCase()).filter(Boolean).includes(email);
+        return owner || shared;
+      })
       .map(c => ({
         id: c.id,
         name: c.name,
         teacherEmail: c.teacherEmail,
-        students: (c.studentsCsv||"").split(",").map(s=>s.trim()).filter(Boolean)
+        students: (c.studentsCsv||"").split(",").map(s=>s.trim()).filter(Boolean),
+        sharedWith: (c.sharedWithCsv||"").split(",").map(s=>s.trim()).filter(Boolean),
+        isOwner: String(c.teacherEmail).toLowerCase() === email
       }));
     const allStudentEmails = Array.from(new Set(classes.flatMap(c => c.students)));
     const userIndex = {};
