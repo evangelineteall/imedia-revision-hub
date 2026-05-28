@@ -24,6 +24,14 @@ const SHEETS = {
   DRAWINGS: "Drawings"
 };
 
+/* Any teacher in this list automatically gets access to every class created
+   via the website (or via the setup scripts). Edit this when staff change. */
+const AUTO_SHARE_TEACHERS = [
+  "evangeline.teall@ralphthoresby.com",
+  "daniel.tyson@ralphthoresby.com",
+  "mudassir.mir@ralphthoresby.com"
+];
+
 const HEADERS = {
   Users:           ["email","name","role","passwordHash","lastActive"],
   Classes:         ["id","name","teacherEmail","studentsCsv","sharedWithCsv"],
@@ -213,8 +221,14 @@ const ACTIONS = {
   createClass({ teacherEmail, name }) {
     if (!teacherEmail || !name) return { ok: false, error: "Missing fields." };
     const id = "c_" + new Date().getTime();
+    const owner = teacherEmail.toLowerCase();
+    // Auto-share with every other teacher in the AUTO_SHARE_TEACHERS list
+    const sharedWith = AUTO_SHARE_TEACHERS
+      .map(e => e.toLowerCase())
+      .filter(e => e !== owner);
     appendRow(SHEETS.CLASSES, {
-      id, name, teacherEmail: teacherEmail.toLowerCase(), studentsCsv: "", sharedWithCsv: ""
+      id, name, teacherEmail: owner, studentsCsv: "",
+      sharedWithCsv: sharedWith.join(",")
     });
     return { ok: true, id };
   },
