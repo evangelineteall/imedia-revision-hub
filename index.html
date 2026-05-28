@@ -1938,10 +1938,17 @@ const mockAPI = {
     this._set("mocks", arr);
     return { ok:true };
   },
+  _autoShareTeachers: [
+    "evangeline.teall@ralphthoresby.com",
+    "daniel.tyson@ralphthoresby.com",
+    "mudassir.mir@ralphthoresby.com"
+  ],
   createClass({ teacherEmail, name }){
     const arr = this._get("classes", []);
     const id = "c_" + Date.now();
-    arr.push({ id, name, teacherEmail:teacherEmail.toLowerCase(), students:[], sharedWith:[] });
+    const owner = teacherEmail.toLowerCase();
+    const sharedWith = this._autoShareTeachers.map(e => e.toLowerCase()).filter(e => e !== owner);
+    arr.push({ id, name, teacherEmail: owner, students:[], sharedWith });
     this._set("classes", arr);
     return { ok:true, id };
   },
