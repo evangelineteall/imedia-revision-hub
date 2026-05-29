@@ -33,7 +33,7 @@ const AUTO_SHARE_TEACHERS = [
 ];
 
 const HEADERS = {
-  Users:           ["email","name","role","passwordHash","lastActive"],
+  Users:           ["email","name","role","passwordHash","lastActive","course"],
   Classes:         ["id","name","teacherEmail","studentsCsv","sharedWithCsv"],
   Quizzes:         ["timestamp","email","topic","score","total","taskType","details"],
   WrittenAnswers:  ["id","timestamp","email","questionId","answer","mark","feedback","markedBy"],
@@ -136,7 +136,7 @@ function jsonOut(obj) {
 /* ---------- Actions ---------- */
 const ACTIONS = {
 
-  register({ email, password, name, role }) {
+  register({ email, password, name, role, course }) {
     if (!email || !password || !name) return { ok: false, error: "Missing fields." };
     if (!["student","teacher"].includes(role)) return { ok: false, error: "Invalid role." };
     const existing = findUser(email);
@@ -146,7 +146,8 @@ const ACTIONS = {
       name: name,
       role: role,
       passwordHash: hashPassword(password),
-      lastActive: new Date().toISOString()
+      lastActive: new Date().toISOString(),
+      course: course || "R093"
     });
     return { ok: true };
   },
@@ -156,7 +157,7 @@ const ACTIONS = {
     if (!u) return { ok: false, error: "No account with that email." };
     if (u.passwordHash !== hashPassword(password)) return { ok: false, error: "Wrong password." };
     updateRow(SHEETS.USERS, "email", u.email, { lastActive: new Date().toISOString() });
-    return { ok: true, user: { email: u.email, name: u.name, role: u.role } };
+    return { ok: true, user: { email: u.email, name: u.name, role: u.role, course: u.course || "R093" } };
   },
 
   submitQuiz({ email, topic, score, total, taskType, details }) {
