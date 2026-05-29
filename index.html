@@ -326,6 +326,13 @@
           <option value="teacher">Teacher</option>
         </select>
       </div>
+      <div class="field reg-only" style="display:none">
+        <label>My course is&hellip;</label>
+        <select id="reg-course">
+          <option value="R093">Cambridge Nationals R093 (Y9–Y11 iMedia)</option>
+          <option value="CT">Cambridge Technicals Digital Media (Y12–Y13)</option>
+        </select>
+      </div>
       <div class="field">
         <label>School email</label>
         <input type="email" id="login-email" autocomplete="email" required>
@@ -354,6 +361,7 @@
     <div class="user-chip">
       <span class="name" id="user-name">&mdash;</span>
       <span class="role" id="user-role">&mdash;</span>
+      <span class="role" id="user-course" style="display:none;background:rgba(255,199,44,.25)">&mdash;</span>
       <button class="btn btn-sm btn-secondary" onclick="signOut()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)">Sign out</button>
     </div>
   </header>
@@ -1860,6 +1868,329 @@ const DRAWINGS = [
 ];
 
 /* ============================================================
+   CAMBRIDGE TECHNICALS DIGITAL MEDIA (Extended Certificate) —
+   Phase 1 starter content for Unit 1 and Unit 2.
+   Original exam-style questions in the OCR Cambridge Technicals style,
+   not reproductions of past papers. Expand by editing the arrays below.
+   ============================================================ */
+const CT_COURSE_NAME = "Cambridge Technicals Digital Media";
+const CT_COURSE_SUBTITLE = "OCR Level 3 Cambridge Technical Extended Certificate";
+
+const CT_TOPICS = {
+  U1: { title: "Unit 1 &mdash; Media products and audiences", colour: "var(--ta1)" },
+  U2: { title: "Unit 2 &mdash; Pre-production and planning", colour: "var(--ta3)" }
+};
+
+const CT_SUBTOPICS = {
+  U1: [
+    { id: "U1.1", title: "Sectors, forms and products" },
+    { id: "U1.2", title: "Audience profile (demographics & psychographics)" },
+    { id: "U1.3", title: "Audience theories and engagement" },
+    { id: "U1.4", title: "Codes, conventions and representation" }
+  ],
+  U2: [
+    { id: "U2.1", title: "Pre-production documents" },
+    { id: "U2.2", title: "Production planning (work plans, resources)" },
+    { id: "U2.3", title: "Legal and ethical considerations" },
+    { id: "U2.4", title: "Industry codes and regulators" }
+  ]
+};
+
+const CT_QUIZZES = {
+  U1: [
+    { q:"Which is part of the AUDIO-VISUAL media sector?", options:["A printed novel","A streaming TV series","A radio play","A board game"], answer:1, explain:"Audio-visual covers TV, film, radio, streaming and similar broadcast/online video and audio content." },
+    { q:"Which is an example of INTERACTIVE media?", options:["A printed magazine","A mobile game","A vinyl record","A printed newspaper"], answer:1, explain:"Interactive media includes apps, games and websites where users take actions." },
+    { q:"DEMOGRAPHIC information about an audience includes&hellip;", options:["Lifestyle and values","Age, gender and location","Favourite hobbies","Brand attitudes"], answer:1, explain:"Demographics are measurable statistical characteristics like age, gender, income and location." },
+    { q:"PSYCHOGRAPHIC profiling looks at an audience's&hellip;", options:["Age and gender only","Lifestyle, values and interests","Postcode only","Internet speed"], answer:1, explain:"Psychographics cover lifestyle, attitudes, values and interests." },
+    { q:"Which research organisation measures TV audiences in the UK?", options:["RAJAR","BARB","ABC","Ofcom"], answer:1, explain:"BARB (Broadcasters' Audience Research Board) measures UK TV viewing." },
+    { q:"Which organisation measures UK radio audiences?", options:["BARB","RAJAR","BBFC","IPSO"], answer:1, explain:"RAJAR (Radio Joint Audience Research) measures UK radio listenership." },
+    { q:"The USES AND GRATIFICATIONS theory suggests audiences&hellip;", options:["Passively absorb whatever they're shown","Actively choose media to meet their needs","Always copy what they see","Only watch one genre"], answer:1, explain:"Uses and gratifications proposes that audiences actively select media to meet needs like information, escapism, social interaction and personal identity." },
+    { q:"The HYPODERMIC NEEDLE theory assumes that audiences are&hellip;", options:["Active and questioning","Passive and easily influenced","Only made up of children","Immune to media messages"], answer:1, explain:"The hypodermic needle model is an older theory suggesting media messages are 'injected' into a passive audience." },
+    { q:"A GENRE is&hellip;", options:["A type or category of media product with shared conventions","Always the same as a brand","A piece of legislation","A type of camera shot"], answer:0, explain:"Genres are categories of media products that share conventions (e.g. horror, sitcom, documentary)." },
+    { q:"REPRESENTATION in media refers to&hellip;", options:["How groups, places or ideas are portrayed","The price of the product","File format choices","The marketing budget"], answer:0, explain:"Representation is how the media constructs and portrays people, places, events or ideas." },
+    { q:"NICHE audiences are&hellip;", options:["Very large mainstream groups","Small, specialised audiences with specific interests","Only children","Random groups"], answer:1, explain:"Niche audiences are smaller, specialised groups with focused interests (e.g. fans of a specific subculture)." },
+    { q:"PRIMARY research means data you&hellip;", options:["Collect first-hand (surveys, interviews)","Read in an existing report","Find on Wikipedia","Buy from a third party"], answer:0, explain:"Primary research is new data collected first-hand by the researcher." },
+    { q:"MAINSTREAM media is BEST described as&hellip;", options:["Aimed at a broad, general audience","Only watched by experts","Always in print form","Only available on subscription"], answer:0, explain:"Mainstream media targets large, broad, general audiences." },
+    { q:"A media product's CODES AND CONVENTIONS are&hellip;", options:["The legal rules for filming","The expected stylistic features audiences recognise","The hardware used","The marketing slogan"], answer:1, explain:"Codes and conventions are recognisable stylistic features (e.g. low lighting, jump scares for horror) that audiences expect." },
+    { q:"CONVERGENCE in the media industry means&hellip;", options:["Companies closing down","Different media types merging onto integrated digital platforms","Cinema only","All media becoming free"], answer:1, explain:"Convergence is the blending of media types (print, broadcast, online) onto shared digital platforms." }
+  ],
+  U2: [
+    { q:"Which document collects images, colours and fonts to capture a product's style?", options:["Storyboard","Mood board","Wireframe","Script"], answer:1, explain:"Mood boards collect visual references — images, colours, fonts — to capture intended style and tone." },
+    { q:"A STORYBOARD plans&hellip;", options:["Tasks and deadlines","Video shots scene-by-scene with camera angles and timing","File formats","Server hosting"], answer:1, explain:"Storyboards plan video shots scene-by-scene, with camera angles, dialogue and timings." },
+    { q:"A WIREFRAME is BEST described as&hellip;", options:["A final coloured mock-up","A low-fidelity layout sketch for a screen","An exported PDF","A risk assessment"], answer:1, explain:"Wireframes are low-fidelity layout sketches showing the structure of a screen or page." },
+    { q:"A WORK PLAN typically lists&hellip;", options:["Camera angles only","Tasks, deadlines, resources and responsibilities","Brand colours","File sizes"], answer:1, explain:"A work plan lists tasks, deadlines, resources, responsibilities and milestones for a project." },
+    { q:"A VISUALISATION DIAGRAM is MOST suitable for planning&hellip;", options:["A poster or magazine cover","A live radio show","A coding project","A spreadsheet"], answer:0, explain:"Visualisation diagrams sketch the planned layout of a static graphic product such as a poster or magazine cover." },
+    { q:"A SCRIPT for a video product typically includes&hellip;", options:["Hardware specs","Dialogue, action and sound cues","Wireframes","Server requirements"], answer:1, explain:"Scripts cover dialogue, action and sound cues for video, audio or interactive products." },
+    { q:"A PRODUCTION SCHEDULE differs from a work plan because it&hellip;", options:["Maps tasks to specific dates and times","Replaces the brief","Lists only equipment","Replaces the mood board"], answer:0, explain:"Production schedules add explicit dates/times to a work plan." },
+    { q:"A HARDWARE resource is something like&hellip;", options:["Adobe Photoshop","A DSLR camera","A mood board","A storyboard"], answer:1, explain:"Hardware is physical equipment such as cameras, microphones and lights." },
+    { q:"A SOFTWARE resource is something like&hellip;", options:["A backdrop","Adobe Premiere Pro","A microphone","A green screen"], answer:1, explain:"Software resources include the applications used in production (editing suites, DAWs, design tools)." },
+    { q:"The COPYRIGHT, DESIGNS AND PATENTS ACT 1988 protects&hellip;", options:["Personal data","Original creative work","Trade routes","Hardware only"], answer:1, explain:"The CDPA 1988 protects original creative works including text, images, music and video." },
+    { q:"GDPR (and UK Data Protection Act 2018) regulates&hellip;", options:["Brand logos","How personal data is collected, stored and used","Trademarks","Hosting costs"], answer:1, explain:"GDPR / DPA 2018 govern how personal data must be collected, stored and used." },
+    { q:"Filming an identifiable person for COMMERCIAL use normally requires&hellip;", options:["No permission","A model release form","Only the photographer's consent","A copyright fee paid to the camera maker"], answer:1, explain:"Commercial use of identifiable people typically requires a signed model release form." },
+    { q:"A LOCATION RELEASE is a document that&hellip;", options:["Pays the cast","Permits filming at a private location","Sets the call time","Lists camera equipment"], answer:1, explain:"Location releases grant permission to film at a specific (often privately-owned) location." },
+    { q:"Which UK body classifies films and video content?", options:["BBFC","Ofcom","ASA","IPSO"], answer:0, explain:"The BBFC (British Board of Film Classification) age-rates films and other video content." },
+    { q:"Which UK body regulates broadcasting and online video standards?", options:["BBFC","Ofcom","IPSO","ICO"], answer:1, explain:"Ofcom regulates broadcasting, telecoms and online video services in the UK." }
+  ]
+};
+
+const CT_QUIZ_SUBS = {
+  U1: ["U1.1","U1.1","U1.2","U1.2","U1.2","U1.2","U1.3","U1.3","U1.4","U1.4","U1.2","U1.2","U1.2","U1.4","U1.1"],
+  U2: ["U2.1","U2.1","U2.1","U2.2","U2.1","U2.1","U2.2","U2.2","U2.2","U2.3","U2.3","U2.3","U2.3","U2.4","U2.4"]
+};
+
+const CT_MATCHUPS = {
+  U1: [
+    { term:"Demographics", def:"Age, gender, location, income, education." },
+    { term:"Psychographics", def:"Lifestyle, attitudes, interests and values." },
+    { term:"Niche audience", def:"A smaller, specialised audience with focused interests." },
+    { term:"Mainstream audience", def:"A broad, general audience targeted by major products." },
+    { term:"Uses & gratifications", def:"Theory: audiences actively choose media to meet personal needs." },
+    { term:"Hypodermic needle", def:"Older theory: passive audiences absorb media messages directly." },
+    { term:"BARB", def:"The body that measures UK TV audiences." },
+    { term:"RAJAR", def:"The body that measures UK radio audiences." }
+  ],
+  U2: [
+    { term:"Mood board", def:"Collects images, colours and fonts to capture style." },
+    { term:"Storyboard", def:"Plans video shots scene-by-scene with angles and timings." },
+    { term:"Wireframe", def:"Low-fidelity layout sketch for a screen." },
+    { term:"Visualisation diagram", def:"Sketched layout for a static graphic product." },
+    { term:"Work plan", def:"Lists tasks, deadlines, resources and responsibilities." },
+    { term:"Model release", def:"Permission form needed to use someone's image commercially." },
+    { term:"BBFC", def:"UK body that age-rates films and video content." },
+    { term:"Ofcom", def:"UK regulator for broadcasting, telecoms and online video." }
+  ]
+};
+const CT_MATCH_SUBS = {
+  U1: ["U1.2","U1.2","U1.2","U1.2","U1.3","U1.3","U1.2","U1.2"],
+  U2: ["U2.1","U2.1","U2.1","U2.1","U2.2","U2.3","U2.4","U2.4"]
+};
+
+const CT_BLANKS = {
+  U1: [
+    { text:"___ measures UK television audiences.", options:["RAJAR","BARB","ASA","BBFC"], answer:1 },
+    { text:"___ are statistical traits like age and location.", options:["Psychographics","Demographics","Aesthetics","Codes"], answer:1 },
+    { text:"___ profiling looks at lifestyle, values and interests.", options:["Psychographic","Demographic","Behavioural","Geographic"], answer:0 },
+    { text:"A ___ audience is small and specialised.", options:["mainstream","niche","global","passive"], answer:1 },
+    { text:"The ___ theory says audiences actively choose media to meet needs.", options:["uses and gratifications","hypodermic needle","two-step flow","cultivation"], answer:0 },
+    { text:"Recognisable stylistic features audiences expect are called ___.", options:["codes and conventions","regulators","budgets","schedules"], answer:0 },
+    { text:"How groups or ideas are portrayed in media is called ___.", options:["representation","syndication","convergence","censorship"], answer:0 },
+    { text:"___ means different media types merging onto shared digital platforms.", options:["Convergence","Divergence","Saturation","Localisation"], answer:0 }
+  ],
+  U2: [
+    { text:"A ___ collects images, colours and fonts to capture style.", options:["storyboard","mood board","script","wireframe"], answer:1 },
+    { text:"A ___ plans video shots scene-by-scene.", options:["storyboard","mood board","work plan","mind map"], answer:0 },
+    { text:"A ___ is a low-fidelity layout sketch for a screen.", options:["wireframe","mood board","script","storyboard"], answer:0 },
+    { text:"A ___ lists tasks, deadlines, resources and responsibilities.", options:["work plan","mood board","storyboard","wireframe"], answer:0 },
+    { text:"The ___ Act 1988 protects original creative work.", options:["Copyright, Designs and Patents","Data Protection","Computer Misuse","Equality"], answer:0 },
+    { text:"A signed ___ form is needed for commercial use of identifiable people.", options:["model release","data protection","insurance","health and safety"], answer:0 },
+    { text:"The ___ classifies films and video content in the UK.", options:["BBFC","Ofcom","ASA","ICO"], answer:0 },
+    { text:"___ regulates UK broadcasting and online video.", options:["Ofcom","BBFC","ICO","IPSO"], answer:0 }
+  ]
+};
+const CT_BLANK_SUBS = {
+  U1: ["U1.2","U1.2","U1.2","U1.2","U1.3","U1.4","U1.4","U1.1"],
+  U2: ["U2.1","U2.1","U2.1","U2.2","U2.3","U2.3","U2.4","U2.4"]
+};
+
+const CT_WRITTEN = [
+  { id:"CW1", topic:"U1", marks:2, q:"State TWO sources of secondary audience data a media producer could use." },
+  { id:"CW2", topic:"U1", marks:6, q:"Discuss factors a media producer should consider when defining the target audience for a new streaming series." },
+  { id:"CW3", topic:"U2", marks:4, q:"Explain TWO benefits of completing a detailed work plan before production begins." },
+  { id:"CW4", topic:"U2", marks:6, q:"Discuss the legal and ethical considerations a producer must address when planning a documentary that features members of the public." }
+];
+const CT_WRITTEN_SUBS = { CW1:"U1.2", CW2:"U1.2", CW3:"U2.2", CW4:"U2.3" };
+
+const CT_FLASHCARDS = [
+  { topic:"U1", term:"Demographics", def:"Statistical traits — age, gender, location, income, education." },
+  { topic:"U1", term:"Psychographics", def:"Lifestyle, values, attitudes and interests of an audience." },
+  { topic:"U1", term:"Niche audience", def:"Small, specialised audience with focused interests." },
+  { topic:"U1", term:"Uses and gratifications", def:"Theory: audiences actively choose media to meet personal needs." },
+  { topic:"U1", term:"BARB", def:"UK body that measures television audiences." },
+  { topic:"U1", term:"RAJAR", def:"UK body that measures radio audiences." },
+  { topic:"U1", term:"Codes and conventions", def:"Recognisable stylistic features audiences expect of a genre." },
+  { topic:"U1", term:"Representation", def:"How groups, places or ideas are portrayed in media." },
+  { topic:"U2", term:"Mood board", def:"Collects images, colours and fonts to capture style." },
+  { topic:"U2", term:"Storyboard", def:"Plans video shots with camera angles and timings." },
+  { topic:"U2", term:"Wireframe", def:"Low-fidelity layout sketch for a screen or page." },
+  { topic:"U2", term:"Work plan", def:"Lists tasks, deadlines, resources and responsibilities." },
+  { topic:"U2", term:"Production schedule", def:"Tasks mapped to specific dates and times." },
+  { topic:"U2", term:"Model release", def:"Permission form for using someone's image commercially." },
+  { topic:"U2", term:"BBFC", def:"UK body that age-rates films and video content." },
+  { topic:"U2", term:"Ofcom", def:"UK regulator for broadcasting, telecoms and online video." }
+];
+const CT_FLASH_SUB_BY_TERM = {
+  "Demographics":"U1.2","Psychographics":"U1.2","Niche audience":"U1.2","Uses and gratifications":"U1.3",
+  "BARB":"U1.2","RAJAR":"U1.2","Codes and conventions":"U1.4","Representation":"U1.4",
+  "Mood board":"U2.1","Storyboard":"U2.1","Wireframe":"U2.1","Work plan":"U2.2",
+  "Production schedule":"U2.2","Model release":"U2.3","BBFC":"U2.4","Ofcom":"U2.4"
+};
+
+const CT_KO_DATA = {
+  U1: {
+    title: "Unit 1 — Media products and audiences",
+    subtitle: "OCR Cambridge Technicals Digital Media · Extended Certificate",
+    boxes: [
+      { title:"Sectors of media", colour:"primary",
+        defs:[
+          { term:"Audio-visual", def:"TV, film, radio, streaming, podcasts." },
+          { term:"Publishing", def:"Books, magazines and newspapers — print and digital." },
+          { term:"Interactive media", def:"Websites, apps and games." }
+        ]
+      },
+      { title:"Audience profiles", colour:"purple",
+        defs:[
+          { term:"Demographics", def:"Age, gender, location, income, education." },
+          { term:"Psychographics", def:"Lifestyle, values, attitudes and interests." },
+          { term:"Behavioural", def:"Usage, brand loyalty, device preference." },
+          { term:"Mainstream / niche", def:"Broad general audience vs small specialised audience." }
+        ]
+      },
+      { title:"Audience measurement", colour:"green",
+        list:[
+          "BARB — UK television audiences.",
+          "RAJAR — UK radio audiences.",
+          "ABC — UK print and digital publication circulation.",
+          "Digital metrics — page views, unique users, session duration, dwell time."
+        ]
+      },
+      { title:"Audience theories", colour:"amber",
+        defs:[
+          { term:"Uses and gratifications", def:"Audiences actively choose media to meet needs (information, escapism, identity, social interaction)." },
+          { term:"Hypodermic needle", def:"Older view of audiences as passive and easily influenced." },
+          { term:"Two-step flow", def:"Media messages are filtered through opinion leaders before reaching audiences." }
+        ]
+      },
+      { title:"Codes & conventions", colour:"rose",
+        list:[
+          "Technical codes — camera, editing, lighting, sound.",
+          "Genre conventions — expected features (e.g. high-key lighting for sitcom).",
+          "Narrative codes — structure (linear, non-linear).",
+          "Representation — how groups, places or ideas are portrayed."
+        ]
+      }
+    ]
+  },
+  U2: {
+    title: "Unit 2 — Pre-production and planning",
+    subtitle: "OCR Cambridge Technicals Digital Media · Extended Certificate",
+    boxes: [
+      { title:"Pre-production documents", colour:"primary",
+        defs:[
+          { term:"Mind map", def:"Brainstorm and connect early ideas." },
+          { term:"Mood board", def:"Images, colours and fonts to capture style." },
+          { term:"Visualisation diagram", def:"Layout sketch for a static graphic." },
+          { term:"Wireframe", def:"Low-fidelity layout for screens." },
+          { term:"Storyboard", def:"Video shots, angles, dialogue, timings." },
+          { term:"Script", def:"Dialogue, action and sound cues." },
+          { term:"Treatment", def:"Short prose summary of the planned product." }
+        ]
+      },
+      { title:"Planning documents", colour:"purple",
+        defs:[
+          { term:"Work plan", def:"Tasks, deadlines, resources, responsibilities." },
+          { term:"Production schedule", def:"Tasks mapped to specific dates / times." },
+          { term:"Call sheet", def:"Daily plan of who/what is needed where, when." },
+          { term:"Asset list", def:"Every individual media asset the product needs." }
+        ]
+      },
+      { title:"Resources", colour:"green",
+        list:[
+          "Hardware — cameras, microphones, lighting, computers.",
+          "Software — Adobe suite, DAWs, editing apps.",
+          "People — crew, talent, contributors.",
+          "Locations — owned, public, with permission via release."
+        ]
+      },
+      { title:"Legal", colour:"amber",
+        defs:[
+          { term:"Copyright, Designs & Patents Act 1988", def:"Protects original creative work." },
+          { term:"Data Protection Act 2018 / UK GDPR", def:"Governs personal data." },
+          { term:"Computer Misuse Act 1990", def:"Unauthorised access is illegal." },
+          { term:"Model release", def:"Required for commercial use of identifiable people." },
+          { term:"Creative Commons", def:"Lets creators allow reuse on stated terms." }
+        ]
+      },
+      { title:"UK regulators", colour:"rose",
+        list:[
+          "BBFC — film and video age ratings.",
+          "Ofcom — broadcasting, telecoms and online video.",
+          "ASA — advertising standards.",
+          "IPSO — most UK newspaper and magazine publishers.",
+          "ICO — data protection and information rights."
+        ]
+      }
+    ]
+  }
+};
+
+/* Empty placeholders for CT (Phase 1) — mocks and drawings to be added later. */
+const CT_MOCKS_EMPTY = {};
+const CT_DRAWINGS_EMPTY = [];
+
+/* Snapshot the R093 content so we can restore it when a teacher views as R093 again. */
+const _SNAPSHOT_R093 = {
+  TOPICS: { ...TOPICS },
+  SUBTOPICS: JSON.parse(JSON.stringify(SUBTOPICS)),
+  QUIZZES: JSON.parse(JSON.stringify(QUIZZES)),
+  QUIZ_SUBS: JSON.parse(JSON.stringify(QUIZ_SUBS)),
+  BLANKS: JSON.parse(JSON.stringify(BLANKS)),
+  BLANK_SUBS: JSON.parse(JSON.stringify(BLANK_SUBS)),
+  MATCHUPS: JSON.parse(JSON.stringify(MATCHUPS)),
+  MATCH_SUBS: JSON.parse(JSON.stringify(MATCH_SUBS)),
+  WRITTEN: [...WRITTEN],
+  WRITTEN_SUBS: { ...WRITTEN_SUBS },
+  FLASHCARDS: [...FLASHCARDS],
+  FLASH_SUB_BY_TERM: { ...FLASH_SUB_BY_TERM },
+  KO_DATA: JSON.parse(JSON.stringify(KO_DATA)),
+  MOCKS_INDEX: { ...MOCKS_INDEX },
+  DRAWINGS: [...DRAWINGS]
+};
+
+function _setObj(target, source){ Object.keys(target).forEach(k => delete target[k]); Object.assign(target, source); }
+function _setArr(target, source){ target.length = 0; Array.prototype.push.apply(target, source); }
+
+/* Swap all the content arrays/objects between R093 and CT.
+   Works without changing const declarations because we mutate rather than reassign. */
+function applyCourse(course){
+  if(course === "CT"){
+    _setObj(TOPICS, CT_TOPICS);
+    _setObj(SUBTOPICS, CT_SUBTOPICS);
+    _setObj(QUIZZES, CT_QUIZZES);
+    _setObj(QUIZ_SUBS, CT_QUIZ_SUBS);
+    _setObj(BLANKS, CT_BLANKS);
+    _setObj(BLANK_SUBS, CT_BLANK_SUBS);
+    _setObj(MATCHUPS, CT_MATCHUPS);
+    _setObj(MATCH_SUBS, CT_MATCH_SUBS);
+    _setArr(WRITTEN, CT_WRITTEN);
+    _setObj(WRITTEN_SUBS, CT_WRITTEN_SUBS);
+    _setArr(FLASHCARDS, CT_FLASHCARDS);
+    _setObj(FLASH_SUB_BY_TERM, CT_FLASH_SUB_BY_TERM);
+    _setObj(KO_DATA, CT_KO_DATA);
+    _setObj(MOCKS_INDEX, CT_MOCKS_EMPTY);
+    _setArr(DRAWINGS, CT_DRAWINGS_EMPTY);
+  } else {
+    _setObj(TOPICS, _SNAPSHOT_R093.TOPICS);
+    _setObj(SUBTOPICS, _SNAPSHOT_R093.SUBTOPICS);
+    _setObj(QUIZZES, _SNAPSHOT_R093.QUIZZES);
+    _setObj(QUIZ_SUBS, _SNAPSHOT_R093.QUIZ_SUBS);
+    _setObj(BLANKS, _SNAPSHOT_R093.BLANKS);
+    _setObj(BLANK_SUBS, _SNAPSHOT_R093.BLANK_SUBS);
+    _setObj(MATCHUPS, _SNAPSHOT_R093.MATCHUPS);
+    _setObj(MATCH_SUBS, _SNAPSHOT_R093.MATCH_SUBS);
+    _setArr(WRITTEN, _SNAPSHOT_R093.WRITTEN);
+    _setObj(WRITTEN_SUBS, _SNAPSHOT_R093.WRITTEN_SUBS);
+    _setArr(FLASHCARDS, _SNAPSHOT_R093.FLASHCARDS);
+    _setObj(FLASH_SUB_BY_TERM, _SNAPSHOT_R093.FLASH_SUB_BY_TERM);
+    _setObj(KO_DATA, _SNAPSHOT_R093.KO_DATA);
+    _setObj(MOCKS_INDEX, _SNAPSHOT_R093.MOCKS_INDEX);
+    _setArr(DRAWINGS, _SNAPSHOT_R093.DRAWINGS);
+  }
+  // Rebuild derived SUB_TITLE lookup
+  Object.keys(SUB_TITLE).forEach(k => delete SUB_TITLE[k]);
+  Object.values(SUBTOPICS).flat().forEach(s => { SUB_TITLE[s.id] = s.title; });
+}
+
+/* ============================================================
    STATE
    ============================================================ */
 let user = null;
@@ -1894,11 +2225,11 @@ const mockAPI = {
     if(changed) this._set("users", users);
   },
 
-  register({ email, password, name, role }){
+  register({ email, password, name, role, course }){
     if(!email || !password || !name) return { ok:false, error:"Missing fields." };
     const users = this._get("users", []);
     if(users.find(u => u.email.toLowerCase() === email.toLowerCase())) return { ok:false, error:"An account with that email already exists." };
-    users.push({ email: email.toLowerCase(), name, role, password, lastActive: new Date().toISOString() });
+    users.push({ email: email.toLowerCase(), name, role, password, course: course || "R093", lastActive: new Date().toISOString() });
     this._set("users", users);
     return { ok:true };
   },
@@ -1909,7 +2240,7 @@ const mockAPI = {
     if(u.password !== password) return { ok:false, error:"Wrong password." };
     u.lastActive = new Date().toISOString();
     this._set("users", users);
-    return { ok:true, user: { email: u.email, name: u.name, role: u.role } };
+    return { ok:true, user: { email: u.email, name: u.name, role: u.role, course: u.course || "R093" } };
   },
   submitQuiz({ email, topic, score, total, taskType, details }){
     const arr = this._get("quizzes", []);
@@ -2138,8 +2469,9 @@ document.getElementById("login-form").addEventListener("submit", async (e)=>{
   if(loginMode==="register"){
     const name = document.getElementById("reg-name").value.trim();
     const role = document.getElementById("reg-role").value;
+    const course = document.getElementById("reg-course").value;
     if(!name) { submit.disabled=false; submit.textContent=original; return showError("Please enter your full name."); }
-    const r = await api("register", { email, password, name, role });
+    const r = await api("register", { email, password, name, role, course });
     submit.disabled=false; submit.textContent=original;
     if(!r.ok) return showError(r.error || "Could not register.");
     showOk("Account created. You can sign in now.");
@@ -2166,8 +2498,15 @@ function signOut(){
    ============================================================ */
 async function enterApp(){
   document.body.classList.add("signed-in");
+  // Swap content arrays to the user's course (R093 default, or CT for Cambridge Technicals)
+  applyCourse((user && user.course) || "R093");
   document.getElementById("user-name").textContent = user.name;
   document.getElementById("user-role").textContent = user.role;
+  const courseBadge = document.getElementById("user-course");
+  if(courseBadge){
+    courseBadge.textContent = (user.course === "CT") ? "Cambridge Technicals" : "R093";
+    courseBadge.style.display = "";
+  }
   document.querySelectorAll(".student-only").forEach(el=>el.style.display = user.role==="student" ? "" : "none");
   document.querySelectorAll(".teacher-only").forEach(el=>el.style.display = user.role==="teacher" ? "" : "none");
 
