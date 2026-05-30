@@ -259,13 +259,55 @@
   .draw-tile .status.submitted{background:#fef6e6;color:var(--accent-dark)}
   .draw-tile .status.marked{background:#e6f7ec;color:var(--success)}
 
-  @media(max-width:600px){
+  @media(max-width:780px){
     main.app-main{padding:1rem .75rem}
-    .nav-tabs button{min-width:0;font-size:.82rem;padding:.55rem .35rem}
+    .card{padding:1rem .9rem;border-radius:10px}
+    .card h2{font-size:1.05rem}
+    header.app-header{padding:.65rem .85rem;flex-wrap:wrap;gap:.4rem}
+    header.app-header h1{font-size:.95rem}
     header.app-header h1 .small{display:none}
-    .heat-grid{grid-template-columns:1fr repeat(4,minmax(50px,1fr));font-size:.72rem}
+    .user-chip{flex-wrap:wrap;gap:.35rem;font-size:.75rem}
+    .user-chip .name{font-size:.78rem}
+    .user-chip .role{font-size:.62rem;padding:.1rem .4rem}
+    .user-chip .btn-sm{padding:.3rem .55rem;font-size:.72rem}
+    .nav-tabs{padding:.3rem;gap:.25rem;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+    .nav-tabs::-webkit-scrollbar{display:none}
+    .nav-tabs{scrollbar-width:none}
+    .nav-tabs button{min-width:auto;font-size:.78rem;padding:.5rem .65rem;flex:0 0 auto;white-space:nowrap}
+    .nav-tabs.nav-sub{padding:.25rem;gap:.2rem}
+    .nav-tabs.nav-sub button{font-size:.74rem;padding:.4rem .55rem}
+    .heat-grid{grid-template-columns:1fr repeat(4,minmax(46px,1fr));font-size:.7rem;gap:.25rem}
     .match-grid{grid-template-columns:1fr}
-    .canvas-toolbar input[type="range"]{width:90px}
+    .canvas-toolbar{padding:.35rem .45rem;gap:.3rem}
+    .canvas-toolbar input[type="range"]{width:80px}
+    .canvas-toolbar .tool-btn{padding:.3rem .5rem;font-size:.75rem}
+    .draw-canvas{height:auto}
+    .topic-grid{grid-template-columns:1fr;gap:.6rem}
+    .card-row{grid-template-columns:1fr 1fr;gap:.6rem}
+    .stat{padding:.7rem .85rem}
+    .stat .value{font-size:1.3rem}
+    .stat .label{font-size:.72rem}
+    table.tbl{display:block;overflow-x:auto;white-space:nowrap;font-size:.82rem}
+    table.tbl th,table.tbl td{padding:.45rem .55rem}
+    .modal{padding:1.2rem 1rem;max-height:92vh}
+    .modal h3{font-size:1rem}
+    .q-block{padding:.85rem .95rem}
+    .q-text{font-size:.92rem}
+    .q-option{padding:.55rem .75rem;font-size:.88rem}
+    .written-q textarea{min-height:90px}
+    .ko-grid{grid-template-columns:1fr;gap:.6rem}
+    .ko-page{padding:1rem .85rem}
+    .ko-page h3.ko-title{font-size:1.15rem}
+    .fc-actions .btn{min-width:0}
+    .login-card{padding:1.75rem 1.4rem}
+    .login-card h1{font-size:1.3rem}
+  }
+  @media(max-width:420px){
+    .card-row{grid-template-columns:1fr}
+    .heat-grid{grid-template-columns:1fr repeat(4,minmax(40px,1fr));font-size:.66rem}
+    .user-chip .name{display:none}
+    header.app-header h1{font-size:.85rem}
+    .canvas-toolbar .swatch{width:18px;height:18px}
   }
 </style>
 </head>
@@ -391,7 +433,7 @@
     <section class="panel active student-only" id="s-home">
       <div class="card">
         <h2>Welcome back, <span id="s-greet">student</span></h2>
-        <p class="lead">Here's a snapshot of your iMedia progress and what's due.</p>
+        <p class="lead">Here's a snapshot of your progress and what's due.</p>
         <div class="card-row" id="s-stats"></div>
       </div>
       <div class="card">
@@ -590,8 +632,8 @@
         <p class="lead">Pick a class and a task. Students see it on their home page until completed.</p>
         <form id="assign-form">
           <div class="field">
-            <label>Class</label>
-            <select id="assign-class" required></select>
+            <label>Class(es) <span style="color:var(--muted);font-weight:400">— tick one or more</span></label>
+            <div id="assign-class" style="display:flex;flex-wrap:wrap;gap:.4rem;background:#fafbfd;border:1.5px solid var(--border);border-radius:8px;padding:.5rem"></div>
           </div>
           <div class="field">
             <label>Task type</label>
@@ -1912,7 +1954,12 @@ const CT_QUIZZES = {
     { q:"PRIMARY research means data you&hellip;", options:["Collect first-hand (surveys, interviews)","Read in an existing report","Find on Wikipedia","Buy from a third party"], answer:0, explain:"Primary research is new data collected first-hand by the researcher." },
     { q:"MAINSTREAM media is BEST described as&hellip;", options:["Aimed at a broad, general audience","Only watched by experts","Always in print form","Only available on subscription"], answer:0, explain:"Mainstream media targets large, broad, general audiences." },
     { q:"A media product's CODES AND CONVENTIONS are&hellip;", options:["The legal rules for filming","The expected stylistic features audiences recognise","The hardware used","The marketing slogan"], answer:1, explain:"Codes and conventions are recognisable stylistic features (e.g. low lighting, jump scares for horror) that audiences expect." },
-    { q:"CONVERGENCE in the media industry means&hellip;", options:["Companies closing down","Different media types merging onto integrated digital platforms","Cinema only","All media becoming free"], answer:1, explain:"Convergence is the blending of media types (print, broadcast, online) onto shared digital platforms." }
+    { q:"CONVERGENCE in the media industry means&hellip;", options:["Companies closing down","Different media types merging onto integrated digital platforms","Cinema only","All media becoming free"], answer:1, explain:"Convergence is the blending of media types (print, broadcast, online) onto shared digital platforms." },
+    { q:"Which sector primarily delivers content as MOBILE APPS and GAMES?", options:["Audio-visual","Publishing","Interactive media","Print only"], answer:2, explain:"Apps and games sit firmly in the interactive media sector." },
+    { q:"A LIFESTYLE PROFILE combines demographic data with&hellip;", options:["Hardware only","Psychographic and behavioural data","Postcode only","Subscription tier only"], answer:1, explain:"Lifestyle profiles layer demographic data with psychographics and behaviour for richer targeting." },
+    { q:"CULTIVATION theory suggests&hellip;", options:["Audiences are immune to media effects","Heavy media exposure shapes long-term worldview","Producers must censor everything","Media only influences children"], answer:1, explain:"Cultivation theory argues that sustained exposure to media gradually shapes audience perceptions of reality." },
+    { q:"Which sector primarily delivers content in PRINT form?", options:["Audio-visual","Publishing","Interactive media","Engineering"], answer:1, explain:"Publishing covers print (and digital) books, newspapers and magazines." },
+    { q:"Evaluating REPRESENTATION usually asks&hellip;", options:["Only how much it cost","Who is represented, how, and whose voices are missing","The hosting plan","The codec used"], answer:1, explain:"Representation analysis asks who is shown, how, by whom, and whose voices are missing." }
   ],
   U2: [
     { q:"Which document collects images, colours and fonts to capture a product's style?", options:["Storyboard","Mood board","Wireframe","Script"], answer:1, explain:"Mood boards collect visual references — images, colours, fonts — to capture intended style and tone." },
@@ -1929,13 +1976,18 @@ const CT_QUIZZES = {
     { q:"Filming an identifiable person for COMMERCIAL use normally requires&hellip;", options:["No permission","A model release form","Only the photographer's consent","A copyright fee paid to the camera maker"], answer:1, explain:"Commercial use of identifiable people typically requires a signed model release form." },
     { q:"A LOCATION RELEASE is a document that&hellip;", options:["Pays the cast","Permits filming at a private location","Sets the call time","Lists camera equipment"], answer:1, explain:"Location releases grant permission to film at a specific (often privately-owned) location." },
     { q:"Which UK body classifies films and video content?", options:["BBFC","Ofcom","ASA","IPSO"], answer:0, explain:"The BBFC (British Board of Film Classification) age-rates films and other video content." },
-    { q:"Which UK body regulates broadcasting and online video standards?", options:["BBFC","Ofcom","IPSO","ICO"], answer:1, explain:"Ofcom regulates broadcasting, telecoms and online video services in the UK." }
+    { q:"Which UK body regulates broadcasting and online video standards?", options:["BBFC","Ofcom","IPSO","ICO"], answer:1, explain:"Ofcom regulates broadcasting, telecoms and online video services in the UK." },
+    { q:"A SHOT LIST contains&hellip;", options:["Brand colours","Every shot needed for the production, with notes","Hosting setup","Marketing budget"], answer:1, explain:"A shot list catalogues every individual shot the production needs, often with lens, framing and notes." },
+    { q:"A CALL SHEET typically includes&hellip;", options:["Mood references only","Times, locations, contacts and call times for cast/crew","Final exports","Editing software list"], answer:1, explain:"Call sheets give the daily plan of who needs to be where, when, and how to contact them." },
+    { q:"Keeping production ARCHIVES helps a producer to&hellip;", options:["Avoid health and safety","Reuse assets, reference past work and protect IP","Skip risk assessments","Reduce all costs to zero"], answer:1, explain:"Well-kept archives let producers re-use assets, reference past work and prove ownership of original IP." },
+    { q:"The FAIR DEALING provision in UK copyright allows&hellip;", options:["Unlimited free reuse","Limited use without permission for purposes such as review or news","Use only in advertising","Use only by broadcasters"], answer:1, explain:"Fair dealing permits limited use of copyrighted material without permission for specific purposes such as criticism, review and news reporting." },
+    { q:"HEALTH AND SAFETY on set is PRIMARILY the responsibility of&hellip;", options:["The audience","The producer (shared with the crew)","The actors only","The regulator"], answer:1, explain:"The producer carries overall responsibility for set safety, shared with crew and (where relevant) location owners." }
   ]
 };
 
 const CT_QUIZ_SUBS = {
-  U1: ["U1.1","U1.1","U1.2","U1.2","U1.2","U1.2","U1.3","U1.3","U1.4","U1.4","U1.2","U1.2","U1.2","U1.4","U1.1"],
-  U2: ["U2.1","U2.1","U2.1","U2.2","U2.1","U2.1","U2.2","U2.2","U2.2","U2.3","U2.3","U2.3","U2.3","U2.4","U2.4"]
+  U1: ["U1.1","U1.1","U1.2","U1.2","U1.2","U1.2","U1.3","U1.3","U1.4","U1.4","U1.2","U1.2","U1.2","U1.4","U1.1","U1.1","U1.2","U1.3","U1.1","U1.4"],
+  U2: ["U2.1","U2.1","U2.1","U2.2","U2.1","U2.1","U2.2","U2.2","U2.2","U2.3","U2.3","U2.3","U2.3","U2.4","U2.4","U2.1","U2.2","U2.2","U2.3","U2.3"]
 };
 
 const CT_MATCHUPS = {
@@ -1996,9 +2048,13 @@ const CT_WRITTEN = [
   { id:"CW1", topic:"U1", marks:2, q:"State TWO sources of secondary audience data a media producer could use." },
   { id:"CW2", topic:"U1", marks:6, q:"Discuss factors a media producer should consider when defining the target audience for a new streaming series." },
   { id:"CW3", topic:"U2", marks:4, q:"Explain TWO benefits of completing a detailed work plan before production begins." },
-  { id:"CW4", topic:"U2", marks:6, q:"Discuss the legal and ethical considerations a producer must address when planning a documentary that features members of the public." }
+  { id:"CW4", topic:"U2", marks:6, q:"Discuss the legal and ethical considerations a producer must address when planning a documentary that features members of the public." },
+  { id:"CW5", topic:"U1", marks:4, q:"Explain TWO ways the uses and gratifications theory could influence the design of a streaming app for teenagers." },
+  { id:"CW6", topic:"U1", marks:6, q:"Discuss how the choice of representation in a media product can affect an audience's interpretation of the content." },
+  { id:"CW7", topic:"U2", marks:2, q:"State TWO benefits of producing a treatment before writing a full script." },
+  { id:"CW8", topic:"U2", marks:6, q:"Discuss the role of UK media regulators (e.g. BBFC, Ofcom, ASA, IPSO and the ICO) in shaping how media products are produced and distributed." }
 ];
-const CT_WRITTEN_SUBS = { CW1:"U1.2", CW2:"U1.2", CW3:"U2.2", CW4:"U2.3" };
+const CT_WRITTEN_SUBS = { CW1:"U1.2", CW2:"U1.2", CW3:"U2.2", CW4:"U2.3", CW5:"U1.3", CW6:"U1.4", CW7:"U2.1", CW8:"U2.4" };
 
 const CT_FLASHCARDS = [
   { topic:"U1", term:"Demographics", def:"Statistical traits — age, gender, location, income, education." },
@@ -2016,13 +2072,34 @@ const CT_FLASHCARDS = [
   { topic:"U2", term:"Production schedule", def:"Tasks mapped to specific dates and times." },
   { topic:"U2", term:"Model release", def:"Permission form for using someone's image commercially." },
   { topic:"U2", term:"BBFC", def:"UK body that age-rates films and video content." },
-  { topic:"U2", term:"Ofcom", def:"UK regulator for broadcasting, telecoms and online video." }
+  { topic:"U2", term:"Ofcom", def:"UK regulator for broadcasting, telecoms and online video." },
+  { topic:"U1", term:"Cultivation theory", def:"Long-term media exposure shapes the audience's worldview." },
+  { topic:"U1", term:"Active audience", def:"Theory that audiences actively select and interpret media." },
+  { topic:"U1", term:"Mainstream audience", def:"A broad, general target audience for a media product." },
+  { topic:"U1", term:"Lifestyle profile", def:"Combined demographic, psychographic and behavioural data." },
+  { topic:"U1", term:"Audience segmentation", def:"Dividing the audience into definable groups for targeting." },
+  { topic:"U1", term:"Geographic profiling", def:"Audience segmentation by location and region." },
+  { topic:"U1", term:"Cross-media", def:"Distribution of related content across multiple platforms." },
+  { topic:"U1", term:"Tertiary research", def:"Summaries and analyses of secondary research." },
+  { topic:"U2", term:"Treatment", def:"Short prose summary of a planned media product." },
+  { topic:"U2", term:"Asset list", def:"Catalogue of every individual media asset the product needs." },
+  { topic:"U2", term:"Shot list", def:"Detailed list of every shot required for the production." },
+  { topic:"U2", term:"Call sheet", def:"Daily plan of who and what is needed where and when." },
+  { topic:"U2", term:"IPSO", def:"UK regulator for most newspaper and magazine publishers." },
+  { topic:"U2", term:"ASA", def:"UK Advertising Standards Authority — regulates UK advertising." },
+  { topic:"U2", term:"Risk assessment", def:"Identifies hazards, who could be harmed and the controls in place." },
+  { topic:"U2", term:"Defamation", def:"Publishing untrue, damaging statements about an identifiable person." }
 ];
 const CT_FLASH_SUB_BY_TERM = {
   "Demographics":"U1.2","Psychographics":"U1.2","Niche audience":"U1.2","Uses and gratifications":"U1.3",
   "BARB":"U1.2","RAJAR":"U1.2","Codes and conventions":"U1.4","Representation":"U1.4",
   "Mood board":"U2.1","Storyboard":"U2.1","Wireframe":"U2.1","Work plan":"U2.2",
-  "Production schedule":"U2.2","Model release":"U2.3","BBFC":"U2.4","Ofcom":"U2.4"
+  "Production schedule":"U2.2","Model release":"U2.3","BBFC":"U2.4","Ofcom":"U2.4",
+  "Cultivation theory":"U1.3","Active audience":"U1.3","Mainstream audience":"U1.2",
+  "Lifestyle profile":"U1.2","Audience segmentation":"U1.2","Geographic profiling":"U1.2",
+  "Cross-media":"U1.1","Tertiary research":"U1.2",
+  "Treatment":"U2.1","Asset list":"U2.2","Shot list":"U2.1","Call sheet":"U2.2",
+  "IPSO":"U2.4","ASA":"U2.4","Risk assessment":"U2.3","Defamation":"U2.3"
 };
 
 const CT_KO_DATA = {
@@ -2436,6 +2513,8 @@ function _setArr(target, source){ target.length = 0; Array.prototype.push.apply(
 /* Swap all the content arrays/objects between R093 and CT.
    Works without changing const declarations because we mutate rather than reassign. */
 function applyCourse(course){
+  // Normalise to uppercase so "ct", "Ct", " CT " all work
+  course = String(course || "").trim().toUpperCase();
   if(course === "CT"){
     _setObj(TOPICS, CT_TOPICS);
     _setObj(SUBTOPICS, CT_SUBTOPICS);
@@ -3325,6 +3404,7 @@ function renderClassesList(){
         </div>
         <div style="display:flex;gap:.4rem;flex-wrap:wrap">
           <button class="btn btn-sm btn-secondary" onclick="openAddStudentModal('${c.id}','${safeName}')">+ Add student</button>
+          <button class="btn btn-sm btn-secondary" onclick="openBulkImportModal('${c.id}','${safeName}')">📥 Bulk import</button>
           ${isOwner ? `<button class="btn btn-sm btn-secondary" onclick="openRenameClassModal('${c.id}','${safeName}')">✏️ Rename</button>` : ''}
           ${isOwner ? `<button class="btn btn-sm btn-secondary" onclick="openShareClassModal('${c.id}','${safeName}')">🤝 Share</button>` : ''}
           ${isOwner ? `<button class="btn btn-sm btn-danger" data-del-class="${c.id}" title="Delete this class">🗑 Delete class</button>` : ''}
@@ -3349,6 +3429,91 @@ function renderClassesList(){
   box.querySelectorAll('button[data-unshare-class]').forEach(btn => {
     btn.onclick = () => unshareClass(btn.dataset.unshareClass, btn.dataset.unshareTeacher);
   });
+}
+
+function openBulkImportModal(classId, className){
+  document.getElementById("modal-body").innerHTML = `
+    <h3>Bulk import students into "${className}"</h3>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:.6rem">
+      Paste one student per line in the format <strong>Full Name, email</strong>. Lines starting with <code>#</code> are ignored.
+      All students get the same default password (set below). Existing accounts are kept; only their class membership is added.
+    </p>
+    <div class="field">
+      <label>Default password for new accounts</label>
+      <input type="text" id="bulk-default-password" value="Thoresby01" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Student list (Name, email per line)</label>
+      <textarea id="bulk-paste" placeholder="Jane Smith, jane.smith@ralphthoresby.com
+Tom Brown, tom.brown@ralphthoresby.com" style="min-height:180px;font-family:monospace;font-size:.85rem"></textarea>
+    </div>
+    <div id="bulk-results" style="display:none;max-height:160px;overflow:auto;font-size:.82rem;background:#fafbfd;border:1px solid var(--border);border-radius:6px;padding:.5rem .65rem;margin-top:.4rem;font-family:monospace"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+      <button class="btn" id="bulk-import-btn" onclick="runBulkImport('${classId}')">Import</button>
+    </div>
+  `;
+  document.getElementById("modal-back").classList.add("show");
+}
+
+async function runBulkImport(classId){
+  const paste = document.getElementById("bulk-paste").value;
+  const defaultPassword = document.getElementById("bulk-default-password").value.trim() || "Thoresby01";
+  const btn = document.getElementById("bulk-import-btn");
+  const resultsBox = document.getElementById("bulk-results");
+
+  // Parse lines: "Name, email" — ignore blank lines and # comments
+  const lines = paste.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith("#"));
+  if(!lines.length){ alert("Paste at least one student row first."); return; }
+
+  // Get the class name for the email-domain check later
+  const cls = teacherData.classes.find(c => c.id === classId);
+  const className = cls ? cls.name : classId;
+
+  btn.disabled = true; btn.textContent = "Importing…";
+  resultsBox.style.display = "block";
+  resultsBox.textContent = "";
+
+  let registered = 0, addedToClass = 0, alreadyExisted = 0, parseErrors = 0, errors = 0;
+  for(const line of lines){
+    const m = line.match(/^(.+?),\s*([^,\s]+@[^,\s]+)$/);
+    if(!m){ resultsBox.textContent += `✗ Couldn't parse: ${line}\n`; parseErrors++; continue; }
+    const name = m[1].trim();
+    const email = m[2].trim().toLowerCase();
+
+    // Try register (will fail silently if already exists — that's fine)
+    const regRes = await api("register", { email, password: defaultPassword, name, role: "student", course: "R093" });
+    if(regRes && regRes.ok){ registered++; }
+    else if(regRes && /already exists/i.test(regRes.error || "")){ alreadyExisted++; }
+    else { resultsBox.textContent += `✗ Register failed for ${email}: ${(regRes && regRes.error) || "unknown error"}\n`; errors++; continue; }
+
+    // Add to class
+    const addRes = await api("addStudent", { classId, studentEmail: email });
+    if(addRes && addRes.ok){
+      addedToClass++;
+      resultsBox.textContent += `✓ ${name} (${email})\n`;
+    } else {
+      resultsBox.textContent += `✗ Couldn't add ${email} to ${className}: ${(addRes && addRes.error) || "unknown error"}\n`;
+      errors++;
+    }
+    resultsBox.scrollTop = resultsBox.scrollHeight;
+  }
+
+  resultsBox.textContent += `\n— Summary —\n`;
+  resultsBox.textContent += `Newly registered: ${registered}\n`;
+  resultsBox.textContent += `Already existed:  ${alreadyExisted}\n`;
+  resultsBox.textContent += `Added to class:   ${addedToClass}\n`;
+  if(parseErrors) resultsBox.textContent += `Parse errors:     ${parseErrors}\n`;
+  if(errors) resultsBox.textContent += `Other errors:     ${errors}\n`;
+  if(addedToClass) resultsBox.textContent += `\nDefault password (share with students): ${defaultPassword}\n`;
+  resultsBox.scrollTop = resultsBox.scrollHeight;
+
+  btn.disabled = false; btn.textContent = "Import again";
+
+  if(addedToClass){
+    await loadTeacherData();
+    renderClassesList(); renderTeacherHome(); renderProgress();
+  }
 }
 
 function openRenameClassModal(classId, currentName){
@@ -3573,8 +3738,17 @@ async function markWritten(submissionId, max){
    TEACHER  &mdash;  ASSIGN
    ============================================================ */
 function renderAssignForm(){
-  const sel = document.getElementById("assign-class");
-  sel.innerHTML = teacherData.classes.map(c=>`<option value="${c.id}">${c.name}</option>`).join("");
+  const box = document.getElementById("assign-class");
+  if(!teacherData.classes.length){
+    box.innerHTML = '<div class="empty" style="padding:.4rem">Create a class first.</div>';
+    return;
+  }
+  box.innerHTML = teacherData.classes.map(c => `
+    <label style="display:inline-flex;align-items:center;gap:.35rem;background:#fff;border:1px solid var(--border);border-radius:999px;padding:.3rem .7rem;font-size:.86rem;cursor:pointer">
+      <input type="checkbox" name="assign-class-cb" value="${c.id}" style="margin:0">
+      ${c.name}
+    </label>
+  `).join("");
 }
 function renderAssignList(){
   const box = document.getElementById("assign-list");
@@ -3632,20 +3806,32 @@ async function deleteAssignment(assignmentId){
 }
 document.getElementById("assign-form").addEventListener("submit", async e=>{
   e.preventDefault();
-  const classId = document.getElementById("assign-class").value;
+  const selectedClassIds = Array.from(document.querySelectorAll('input[name="assign-class-cb"]:checked')).map(cb => cb.value);
   const taskType = document.getElementById("assign-type").value;
   const topic = document.getElementById("assign-topic").value;
   const dueDate = document.getElementById("assign-due").value;
   const releaseDate = document.getElementById("assign-release").value || new Date().toISOString().slice(0,10);
   const note = document.getElementById("assign-note").value.trim();
-  if(!classId) return alert("Please create a class first.");
+  if(!selectedClassIds.length) return alert("Please tick at least one class.");
   if(releaseDate > dueDate) return alert("Release date can't be after the due date.");
-  const r = await api("assignHomework", { classId, taskType, topic, dueDate, releaseDate, note, createdBy:user.email });
-  if(r.ok){
-    alert("Homework assigned.");
-    document.getElementById("assign-note").value = "";
-    await loadTeacherData(); renderAssignList(); renderTeacherHome();
-  } else alert(r.error || "Could not assign.");
+
+  // Loop through every selected class
+  const results = [];
+  for(const classId of selectedClassIds){
+    const r = await api("assignHomework", { classId, taskType, topic, dueDate, releaseDate, note, createdBy:user.email });
+    const cls = teacherData.classes.find(c => c.id === classId);
+    results.push({ name: (cls ? cls.name : classId), ok: r && r.ok, error: r && r.error });
+  }
+  const okCount = results.filter(r => r.ok).length;
+  const failures = results.filter(r => !r.ok);
+  if(failures.length === 0){
+    alert(`Homework assigned to ${okCount} class${okCount===1?'':'es'}.`);
+  } else {
+    alert(`Assigned to ${okCount}/${results.length} classes.\n\nFailed: ${failures.map(f => f.name + ' (' + (f.error||'unknown') + ')').join('\n')}`);
+  }
+  document.getElementById("assign-note").value = "";
+  document.querySelectorAll('input[name="assign-class-cb"]:checked').forEach(cb => cb.checked = false);
+  await loadTeacherData(); renderAssignList(); renderTeacherHome();
 });
 
 /* When the task type changes, swap the "topic" dropdown to fit the activity. */
