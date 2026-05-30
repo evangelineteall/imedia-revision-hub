@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>iMedia Homework &amp; Revision Hub | Ralph Thoresby School</title>
+<title>Computing Revision Hub | Ralph Thoresby School</title>
 <style>
   :root{
     /* Ralph Thoresby School palette &mdash; royal blue + gold (matches the school crest) */
@@ -306,8 +306,8 @@
            style="filter:drop-shadow(0 3px 6px rgba(13,71,161,.25));object-fit:contain"
            onerror="this.outerHTML='<svg width=\'64\' height=\'80\' style=\'filter:drop-shadow(0 3px 6px rgba(13,71,161,.25))\'><use href=\'#rts-crest\'/></svg>'">
     </div>
-    <h1>iMedia Homework &amp; Revision Hub</h1>
-    <p class="sub">Cambridge Nationals in Creative iMedia<br><strong style="color:var(--primary)">Ralph Thoresby School</strong></p>
+    <h1>Computing Revision Hub</h1>
+    <p class="sub">Ralph Thoresby School<br><strong style="color:var(--primary)">Cambridge Nationals iMedia &middot; Cambridge Technicals Digital Media</strong></p>
     <div class="login-tabs">
       <button class="active" data-mode="login">Sign in</button>
       <button data-mode="register">Register</button>
@@ -329,8 +329,8 @@
       <div class="field reg-only" style="display:none">
         <label>My course is&hellip;</label>
         <select id="reg-course">
-          <option value="R093">Cambridge Nationals R093 (Y9–Y11 iMedia)</option>
-          <option value="CT">Cambridge Technicals Digital Media (Y12–Y13)</option>
+          <option value="R093">iMedia (Y9–Y11)</option>
+          <option value="CT">Digital Media (Y12–Y13)</option>
         </select>
       </div>
       <div class="field">
@@ -354,8 +354,8 @@
            style="object-fit:contain"
            onerror="this.outerHTML='<svg width=\'38\' height=\'46\'><use href=\'#rts-crest\'/></svg>'">
       <div>
-        <h1 style="line-height:1.1">iMedia Homework &amp; Revision Hub</h1>
-        <div style="font-size:.78rem;opacity:.85;letter-spacing:.5px">RALPH THORESBY SCHOOL &middot; CREATIVE iMEDIA</div>
+        <h1 style="line-height:1.1">Computing Revision Hub</h1>
+        <div style="font-size:.78rem;opacity:.85;letter-spacing:.5px">RALPH THORESBY SCHOOL &middot; iMEDIA &middot; DIGITAL MEDIA</div>
       </div>
     </div>
     <div class="user-chip">
@@ -2123,9 +2123,289 @@ const CT_KO_DATA = {
   }
 };
 
-/* Empty placeholders for CT (Phase 1) — mocks and drawings to be added later. */
-const CT_MOCKS_EMPTY = {};
-const CT_DRAWINGS_EMPTY = [];
+/* CT mock papers (6 papers, 15 questions each) — original exam-style content. */
+const CT_MOCK1 = [
+  { topic:"U1", q:"Which sector of the media industry covers TV, film and radio?", options:["Publishing","Audio-visual","Interactive media","Print only"], answer:1 },
+  { topic:"U1", q:"DEMOGRAPHIC data about an audience includes&hellip;", options:["Lifestyle and values","Age, gender and location","Favourite brands only","Internet speed only"], answer:1 },
+  { topic:"U2", q:"A STORYBOARD plans&hellip;", options:["File formats","Video shots scene-by-scene with angles and timings","Server hosting","Marketing slogans"], answer:1 },
+  { topic:"U2", q:"A MOOD BOARD collects&hellip;", options:["Tasks and deadlines","Images, colours and fonts","Hardware specs","File sizes"], answer:1 },
+  { topic:"U1", q:"BARB measures audiences for&hellip;", options:["UK radio","UK television","UK newspapers","UK cinema"], answer:1 },
+  { topic:"U2", q:"A WORK PLAN typically lists&hellip;", options:["Camera angles only","Tasks, deadlines, resources and responsibilities","File formats","Wireframes only"], answer:1 },
+  { topic:"U1", q:"A NICHE audience is&hellip;", options:["Very large and mainstream","Small and specialised with focused interests","Only made up of children","Anonymous on social media"], answer:1 },
+  { topic:"U2", q:"A WIREFRAME is&hellip;", options:["A final coloured mock-up","A low-fidelity layout sketch for a screen","An exported PDF","A risk assessment"], answer:1 },
+  { topic:"U2", q:"The Copyright, Designs and Patents Act 1988 protects&hellip;", options:["Hardware only","Original creative work","Trade routes","Personal data"], answer:1 },
+  { topic:"U1", q:"PSYCHOGRAPHIC profiling includes&hellip;", options:["Age and gender only","Lifestyle, values and interests","Postcode only","Income only"], answer:1 },
+  { topic:"U2", q:"A PRODUCTION SCHEDULE differs from a work plan because it&hellip;", options:["Maps tasks to specific dates and times","Replaces the brief","Lists only equipment","Replaces the mood board"], answer:0 },
+  { topic:"U1", q:"USES AND GRATIFICATIONS theory says audiences&hellip;", options:["Passively absorb media","Actively choose media to meet personal needs","Only watch one genre","Are easily fooled"], answer:1 },
+  { topic:"U2", q:"The BBFC classifies&hellip;", options:["Films and video content","Broadcast advertising","Print journalism","Personal data"], answer:0 },
+  { topic:"U1", q:"CONVERGENCE means&hellip;", options:["Closure of companies","Different media types merging onto integrated digital platforms","Cinema only","All media becoming free"], answer:1 },
+  { topic:"U2", q:"A MODEL RELEASE is needed for&hellip;", options:["No filming situations","Commercial use of identifiable people","Hiring crew","Booking equipment"], answer:1 }
+];
+
+const CT_MOCK2 = [
+  { topic:"U1", q:"RAJAR measures audiences for&hellip;", options:["UK television","UK radio","UK websites","UK cinema"], answer:1 },
+  { topic:"U1", q:"The HYPODERMIC NEEDLE theory describes audiences as&hellip;", options:["Active and questioning","Passive and easily influenced","Only adults","Only paying subscribers"], answer:1 },
+  { topic:"U1", q:"A MAINSTREAM audience is&hellip;", options:["Small and specialised","Broad and general","Anonymous","Restricted to experts"], answer:1 },
+  { topic:"U2", q:"A TREATMENT is&hellip;", options:["A short prose summary of a planned product","A risk assessment","A storyboard","A marketing strategy"], answer:0 },
+  { topic:"U1", q:"TWO-STEP FLOW theory says messages reach audiences via&hellip;", options:["Direct broadcast only","Opinion leaders who interpret media first","Random algorithms","Government censors"], answer:1 },
+  { topic:"U1", q:"PRIMARY research is data&hellip;", options:["Read from existing reports","Collected first-hand by the researcher","Bought from third parties","Generated automatically"], answer:1 },
+  { topic:"U2", q:"OFCOM regulates&hellip;", options:["Newspapers only","UK broadcasting, telecoms and online video","Advertising only","Data protection only"], answer:1 },
+  { topic:"U2", q:"A pre-production CHECKLIST helps a team&hellip;", options:["Hide errors","Confirm required documents and resources are ready","Skip planning","Reduce wages"], answer:1 },
+  { topic:"U2", q:"A CALL SHEET is&hellip;", options:["A storyboard variation","A daily plan of who and what is needed where, when","A piece of equipment","A copyright form"], answer:1 },
+  { topic:"U2", q:"GDPR governs&hellip;", options:["Brand logos","How personal data is collected, stored and used","Trademarks","Hosting costs"], answer:1 },
+  { topic:"U2", q:"A MOOD BOARD helps a producer to&hellip;", options:["Edit the final video","Explore and align the visual style of the product","Allocate budget","Recruit crew"], answer:1 },
+  { topic:"U2", q:"An ASSET LIST contains&hellip;", options:["Every individual media asset the product will need","Only audio files","Only legal documents","Only brand colours"], answer:0 },
+  { topic:"U2", q:"The ASA regulates&hellip;", options:["UK films","UK advertising standards","UK radio audiences","UK data protection"], answer:1 },
+  { topic:"U1", q:"ABC measures&hellip;", options:["Television viewing","Print and digital publication circulation","Radio listening","Streaming subscriptions"], answer:1 },
+  { topic:"U2", q:"A MIND MAP is BEST used for&hellip;", options:["Brainstorming and connecting ideas","Final exports","Marketing","Risk assessment"], answer:0 }
+];
+
+const CT_MOCK3 = [
+  { topic:"U1", q:"A SURVEY with hundreds of respondents is mainly&hellip;", options:["Qualitative primary research","Quantitative primary research","Secondary research","Tertiary research"], answer:1 },
+  { topic:"U2", q:"Adobe Premiere Pro is an example of a&hellip;", options:["Hardware resource","Software resource","Pre-production document","Distribution platform"], answer:1 },
+  { topic:"U1", q:"A FOCUS GROUP usually produces&hellip;", options:["Numerical sales data","Qualitative insights from discussion","Hardware specs","Legal documents"], answer:1 },
+  { topic:"U2", q:"A DSLR camera is an example of a&hellip;", options:["Software resource","Hardware resource","Distribution platform","Pre-production document"], answer:1 },
+  { topic:"U2", q:"The ICO oversees&hellip;", options:["Advertising","Data protection and information rights","Film classification","Trade marks"], answer:1 },
+  { topic:"U2", q:"A RISK ASSESSMENT identifies&hellip;", options:["Hazards, who could be harmed, and controls","Brand colours","Sound effects","Camera angles only"], answer:0 },
+  { topic:"U1", q:"SECONDARY research uses&hellip;", options:["Existing sources such as reports and articles","New data only","First-hand interviews only","Closed surveys only"], answer:0 },
+  { topic:"U2", q:"A LOCATION RELEASE grants&hellip;", options:["Use of an actor's likeness","Permission to film at a specific (often private) venue","Right to use copyrighted music","Access to broadcast spectrum"], answer:1 },
+  { topic:"U1", q:"QUANTITATIVE data is&hellip;", options:["Numerical","Always anecdotal","Only opinions","Always biased"], answer:0 },
+  { topic:"U1", q:"QUALITATIVE data is&hellip;", options:["Numerical counts only","Descriptive and narrative — opinions, descriptions","Random","Confidential by default"], answer:1 },
+  { topic:"U2", q:"IPSO regulates&hellip;", options:["UK television","UK newspapers and magazines (most publishers)","UK films","UK data"], answer:1 },
+  { topic:"U2", q:"A storyboard for a 30-second advert should include&hellip;", options:["Brand colours only","Frames with shots, dialogue/SFX and timings","Sales figures","Hosting setup"], answer:1 },
+  { topic:"U1", q:"TEST SCREENING is&hellip;", options:["A pre-release showing to gauge audience reaction","An accountant's review","A legal process","A regulator's audit"], answer:0 },
+  { topic:"U1", q:"Hardware compatibility matters most when&hellip;", options:["Only working with HD video","The audience uses specific or older devices","Filming in colour","Editing audio only"], answer:1 },
+  { topic:"U2", q:"A WIREFRAME shows&hellip;", options:["The final colour scheme","The structure and layout of a screen","Music cues","Cast biographies"], answer:1 }
+];
+
+const CT_MOCK4 = [
+  { topic:"U1", q:"GENRE CONVENTIONS are&hellip;", options:["Legal requirements","Recognisable features audiences expect of a category","File formats","Marketing terms"], answer:1 },
+  { topic:"U2", q:"The Copyright, Designs and Patents Act 1988 protects&hellip;", options:["Original creative work","Personal data","Hardware only","Trade routes"], answer:0 },
+  { topic:"U1", q:"REPRESENTATION refers to&hellip;", options:["File sizes","How groups, places or ideas are portrayed in media","Hosting","Distribution windows"], answer:1 },
+  { topic:"U2", q:"A MODEL RELEASE permits&hellip;", options:["Filming at a private location","Commercial use of an identifiable person's image","Use of copyrighted music","Broadcast in another country"], answer:1 },
+  { topic:"U2", q:"The Computer Misuse Act 1990 makes which of these illegal?", options:["Buying second-hand computers","Unauthorised access to computer material","Selling original software","Owning a domain"], answer:1 },
+  { topic:"U1", q:"TECHNICAL CODES in moving image media include&hellip;", options:["Camera, editing, lighting and sound","Spelling and grammar","Hosting plans","Marketing slogans"], answer:0 },
+  { topic:"U1", q:"NARRATIVE codes describe&hellip;", options:["Story structure (e.g. linear, non-linear)","Brand identity","File formats","Legal requirements"], answer:0 },
+  { topic:"U2", q:"A CREATIVE COMMONS licence&hellip;", options:["Removes all copyright","Lets the creator allow reuse on stated terms","Applies only to music","Is illegal in the UK"], answer:1 },
+  { topic:"U2", q:"A TREATMENT differs from a SCRIPT because&hellip;", options:["It includes line-by-line dialogue","It is a short prose summary, not full dialogue","It is shorter than a poster","It contains technical drawings"], answer:1 },
+  { topic:"U2", q:"INSURANCE during production typically covers&hellip;", options:["Liability and equipment","Marketing budgets only","Talent salaries only","Hosting costs only"], answer:0 },
+  { topic:"U1", q:"WAV is BEST described as a&hellip;", options:["Lossy audio format","Lossless audio format","Image format","Video container"], answer:1 },
+  { topic:"U1", q:"SYMBOLIC CODES include&hellip;", options:["Colour, objects, clothing and gesture","File extensions","Server response codes","Brand contracts"], answer:0 },
+  { topic:"U2", q:"Health and safety on set is the responsibility of&hellip;", options:["The catering team","The producer (and shared with the team)","The audience","The regulator"], answer:1 },
+  { topic:"U1", q:"A STEREOTYPE is&hellip;", options:["A balanced representation","An oversimplified, often unfair portrayal of a group","A copyright protection","A type of camera shot"], answer:1 },
+  { topic:"U1", q:"TWO-STEP FLOW theory describes&hellip;", options:["Direct effects on all viewers","Influence reaching audiences via opinion leaders","An editing technique","A type of survey"], answer:1 }
+];
+
+const CT_MOCK5 = [
+  { topic:"U2", q:"A documentary featuring real people normally requires&hellip;", options:["No paperwork","Informed consent and (where commercial) a release","Only a director's approval","Only a producer's approval"], answer:1 },
+  { topic:"U1", q:"STEREOTYPES can be harmful because they&hellip;", options:["Educate audiences fairly","Oversimplify and misrepresent groups","Improve accessibility","Always sell more advertising"], answer:1 },
+  { topic:"U2", q:"A producer's ETHICAL responsibilities include&hellip;", options:["Truthfulness, informed consent, and minimising harm","Maximising profit at any cost","Hiding sources","Avoiding all marketing"], answer:0 },
+  { topic:"U1", q:"EDITING can affect representation by&hellip;", options:["Changing the audio format","Selecting and sequencing footage to shape meaning","Changing the file size","Adjusting hosting"], answer:1 },
+  { topic:"U2", q:"A robust RISK ASSESSMENT includes&hellip;", options:["Hazards, who is at risk, controls and responsibilities","Brand colours only","Marketing strategy","Audio levels only"], answer:0 },
+  { topic:"U2", q:"VULNERABLE subjects (e.g. children, victims of crime) require&hellip;", options:["Additional safeguarding, consent and care","No additional consideration","Higher fees only","Only legal review"], answer:0 },
+  { topic:"U1", q:"The HYPODERMIC NEEDLE model PREDATES&hellip;", options:["Active-audience theories","Cinema itself","Television","Newspapers"], answer:0 },
+  { topic:"U2", q:"A PRIVACY INJUNCTION can prevent&hellip;", options:["Publication of certain personal information","Filming altogether","Use of any music","Broadcast adverts"], answer:0 },
+  { topic:"U1", q:"DIVERSITY in media production means&hellip;", options:["Including a range of perspectives and voices","Hiring only family","Avoiding all minorities","Using only one studio"], answer:0 },
+  { topic:"U2", q:"DEFAMATION refers to&hellip;", options:["Publishing untrue, damaging statements about someone","Using public domain images","Editing video","Booking equipment"], answer:0 },
+  { topic:"U2", q:"Storyboard TIMINGS allow a team to&hellip;", options:["Plan pacing and total runtime","Avoid risk assessments","Pay the cast","Choose a regulator"], answer:0 },
+  { topic:"U1", q:"Relying on STEREOTYPES risks&hellip;", options:["Realistic representation","Misrepresenting groups and reinforcing bias","More accurate stories","Faster production"], answer:1 },
+  { topic:"U2", q:"A COPYRIGHT LICENCE specifies&hellip;", options:["The conditions under which work may be reused","Hardware compatibility","Audience size","Marketing budgets"], answer:0 },
+  { topic:"U1", q:"REPRESENTATION analysis asks&hellip;", options:["Who is included and excluded, how, and why","Only file format choices","Marketing budgets","Server costs"], answer:0 },
+  { topic:"U2", q:"MOOD BOARDS visualise&hellip;", options:["The intended style and tone before production","Cast contracts","Server hosting","Audience metrics"], answer:0 }
+];
+
+const CT_MOCK6 = [
+  { topic:"U2", q:"The ASA enforces&hellip;", options:["UK advertising codes","Film classification","Data protection","Broadcast spectrum allocation"], answer:0 },
+  { topic:"U1", q:"A PRESS KIT is mainly used to&hellip;", options:["Promote a release to journalists","File legal claims","Train crew","Audit accounts"], answer:0 },
+  { topic:"U1", q:"DISTRIBUTION WINDOWS describe&hellip;", options:["When and where content is released across platforms","Marketing slogans","Hosting plans","Risk assessments"], answer:0 },
+  { topic:"U1", q:"A TEASER trailer differs from a FULL trailer because it&hellip;", options:["Is shorter and withholds key information","Is always longer","Contains full credits","Always shows the ending"], answer:0 },
+  { topic:"U1", q:"SEO stands for&hellip;", options:["Search Engine Optimisation","Social Editorial Output","Series Episode Order","System Encoding Option"], answer:0 },
+  { topic:"U1", q:"EARNED media is&hellip;", options:["Coverage gained without direct payment","Paid advertising","Owned channels only","Internal communications"], answer:0 },
+  { topic:"U1", q:"A MERCHANDISING deal involves&hellip;", options:["Branded product tie-ins","A new server contract","Removing music rights","Cancelling distribution"], answer:0 },
+  { topic:"U1", q:"INFLUENCER marketing uses&hellip;", options:["Social-media personalities to promote products","Cinema posters only","Print only","Radio jingles only"], answer:0 },
+  { topic:"U2", q:"A WIREFRAME is best used to plan&hellip;", options:["Screen layouts and structure","Sound mixing","Costume design","Catering"], answer:0 },
+  { topic:"U2", q:"RISK ASSESSMENTS should be&hellip;", options:["Reviewed and updated regularly","Filed once and ignored","Replaced by insurance","Used only post-production"], answer:0 },
+  { topic:"U1", q:"An audience report bought from a research firm is&hellip;", options:["Primary research","Secondary research","Tertiary research","Personal opinion"], answer:1 },
+  { topic:"U2", q:"The ICO can investigate&hellip;", options:["Data breaches","Film classifications","Music royalties","Theatre licences"], answer:0 },
+  { topic:"U2", q:"INDUSTRY CODES OF PRACTICE are&hellip;", options:["Self-regulated standards beyond minimum law","Always legally binding","Only for broadcasters","Only for journalists"], answer:0 },
+  { topic:"U1", q:"A typical FOCUS GROUP session lasts about&hellip;", options:["5 minutes","60–90 minutes","8 hours","One full week"], answer:1 },
+  { topic:"U1", q:"Documentary OBJECTIVITY is BEST described as&hellip;", options:["An aspiration shaped by editorial choices","Always fully achievable","A legal requirement","Irrelevant to the form"], answer:0 }
+];
+
+const CT_MOCKS_INDEX_DATA = { MOCK1: CT_MOCK1, MOCK2: CT_MOCK2, MOCK3: CT_MOCK3, MOCK4: CT_MOCK4, MOCK5: CT_MOCK5, MOCK6: CT_MOCK6 };
+
+const CT_MOCK_SUBS_DATA = {
+  MOCK1: ["U1.1","U1.2","U2.1","U2.1","U1.2","U2.2","U1.2","U2.1","U2.3","U1.2","U2.2","U1.3","U2.4","U1.1","U2.3"],
+  MOCK2: ["U1.2","U1.3","U1.2","U2.1","U1.3","U1.2","U2.4","U2.2","U2.2","U2.3","U2.1","U2.2","U2.4","U1.2","U2.1"],
+  MOCK3: ["U1.2","U2.2","U1.2","U2.2","U2.4","U2.3","U1.2","U2.3","U1.2","U1.2","U2.4","U2.1","U1.2","U1.4","U2.1"],
+  MOCK4: ["U1.4","U2.3","U1.4","U2.3","U2.3","U1.4","U1.4","U2.3","U2.1","U2.3","U1.1","U1.4","U2.3","U1.4","U1.3"],
+  MOCK5: ["U2.3","U1.4","U2.3","U1.4","U2.3","U2.3","U1.3","U2.3","U1.4","U2.3","U2.1","U1.4","U2.3","U1.4","U2.1"],
+  MOCK6: ["U2.4","U1.4","U1.4","U1.4","U1.4","U1.4","U1.4","U1.4","U2.1","U2.3","U1.2","U2.4","U2.4","U1.2","U1.4"]
+};
+
+const CT_MOCK_EXPLAIN_DATA = {
+  MOCK1: [
+    "Audio-visual covers TV, film, radio, streaming and similar broadcast/online video and audio.",
+    "Demographics describe measurable population characteristics — age, gender, location, income, education.",
+    "Storyboards plan video shots scene-by-scene with camera angles, dialogue and timing.",
+    "Mood boards collect visual references (images, colours, fonts) to capture intended style.",
+    "BARB is the Broadcasters' Audience Research Board — it measures UK TV audiences.",
+    "A work plan schedules tasks, deadlines, resources and responsibilities.",
+    "Niche audiences are small, specialised groups with focused interests.",
+    "Wireframes are low-fidelity layout sketches showing screen structure.",
+    "The CDPA 1988 protects original creative works such as text, images, music and video.",
+    "Psychographics cover lifestyle, attitudes, interests and values.",
+    "A production schedule maps tasks to specific dates and times.",
+    "Uses and gratifications proposes that audiences actively choose media to meet needs.",
+    "The BBFC (British Board of Film Classification) age-rates films and video content.",
+    "Convergence is the blending of media types onto integrated digital platforms.",
+    "Model releases are required for commercial use of identifiable people."
+  ],
+  MOCK2: [
+    "RAJAR (Radio Joint Audience Research) measures UK radio listening.",
+    "The hypodermic needle model is an older theory of passive audiences absorbing media messages.",
+    "Mainstream audiences are broad, general groups targeted by major products.",
+    "A treatment is a short prose summary of a planned media product.",
+    "Two-step flow theory says media messages reach audiences via opinion leaders.",
+    "Primary research is data collected first-hand by the researcher.",
+    "Ofcom regulates UK broadcasting, telecoms and online video services.",
+    "Checklists confirm that documents and resources are ready before production begins.",
+    "A call sheet is a daily plan listing who and what is needed where and when.",
+    "GDPR (and the UK Data Protection Act 2018) governs personal data.",
+    "Mood boards explore and align the visual style with the brief.",
+    "An asset list catalogues every individual media asset a product needs.",
+    "The ASA (Advertising Standards Authority) regulates UK advertising.",
+    "ABC (Audit Bureau of Circulations) measures print and digital publication circulation.",
+    "Mind maps brainstorm and connect early ideas."
+  ],
+  MOCK3: [
+    "A large-sample survey is quantitative primary research — new numerical data.",
+    "Premiere Pro is an application used in production — a software resource.",
+    "Focus groups produce qualitative insights through discussion.",
+    "A DSLR camera is physical equipment — a hardware resource.",
+    "The ICO (Information Commissioner's Office) oversees data protection in the UK.",
+    "A risk assessment identifies hazards, the people at risk, and the controls in place.",
+    "Secondary research uses existing sources such as reports, articles and statistics.",
+    "Location releases give permission to film at a specific, often private, venue.",
+    "Quantitative data is numerical — counts, percentages, ratings.",
+    "Qualitative data is descriptive — opinions, narratives, themes.",
+    "IPSO regulates most UK newspaper and magazine publishers.",
+    "Storyboards for short adverts plan frames with shots, dialogue/SFX and timing.",
+    "Test screenings show content to a sample audience to gauge reaction before release.",
+    "Hardware compatibility matters when the audience uses specific or older devices.",
+    "Wireframes show the structure and layout of a screen or page."
+  ],
+  MOCK4: [
+    "Genre conventions are recognisable stylistic features audiences expect of a category.",
+    "The CDPA 1988 protects original creative work.",
+    "Representation is how groups, places or ideas are portrayed in media.",
+    "A model release permits commercial use of an identifiable person's image.",
+    "The Computer Misuse Act 1990 makes unauthorised access to computer material illegal.",
+    "Technical codes include camera, editing, lighting and sound choices.",
+    "Narrative codes describe how a story is structured (e.g. linear, non-linear).",
+    "Creative Commons lets creators allow reuse on stated terms.",
+    "A treatment is a prose summary; a script contains line-by-line dialogue and action.",
+    "Production insurance typically covers public liability and equipment.",
+    "WAV is a lossless audio format that preserves the full signal.",
+    "Symbolic codes include colour, objects, clothing and gesture.",
+    "Producers carry overall responsibility for health and safety on set (shared with team).",
+    "Stereotypes are oversimplified, often unfair portrayals of groups.",
+    "Two-step flow describes media influence reaching audiences via opinion leaders."
+  ],
+  MOCK5: [
+    "Documentary subjects normally require informed consent and (where commercial) a release.",
+    "Stereotypes can oversimplify and misrepresent groups, reinforcing bias.",
+    "Producers' ethical responsibilities include truthfulness, informed consent and minimising harm.",
+    "Editing shapes meaning through what is selected, sequenced and omitted.",
+    "Risk assessments cover hazards, the people at risk, controls and responsibilities.",
+    "Vulnerable subjects require additional safeguarding, careful consent and duty of care.",
+    "The hypodermic needle model predates the active-audience theories that came later.",
+    "Privacy injunctions can prevent the publication of certain personal information.",
+    "Diversity means including a range of perspectives and voices in production.",
+    "Defamation is the publication of untrue, damaging statements about someone.",
+    "Storyboard timings let the team plan pacing and total runtime.",
+    "Relying on stereotypes risks misrepresenting groups and reinforcing bias.",
+    "A copyright licence specifies the conditions under which work may be reused.",
+    "Representation analysis asks who is included, excluded, how, and why.",
+    "Mood boards visualise the intended style and tone before production begins."
+  ],
+  MOCK6: [
+    "The ASA enforces UK advertising codes (CAP and BCAP).",
+    "A press kit is used to promote a release to journalists and media outlets.",
+    "Distribution windows describe when and where content is released across platforms.",
+    "Teaser trailers are shorter and withhold key information to build anticipation.",
+    "SEO stands for Search Engine Optimisation — improving organic visibility.",
+    "Earned media is coverage gained without direct payment (PR, word of mouth).",
+    "Merchandising deals involve branded product tie-ins linked to the media product.",
+    "Influencer marketing uses social-media personalities to promote products.",
+    "Wireframes plan screen layouts and structure during pre-production.",
+    "Risk assessments should be reviewed and updated regularly as conditions change.",
+    "An audience report bought from a research firm is secondary research.",
+    "The ICO investigates data breaches and information-rights complaints.",
+    "Industry codes of practice are self-regulated standards going beyond minimum law.",
+    "Focus group sessions typically last 60–90 minutes.",
+    "Documentary objectivity is an aspiration shaped by editorial choices, not absolute."
+  ]
+};
+
+const CT_MOCK_WRITTEN_DATA = {
+  MOCK1: [
+    { q:"State TWO sectors of the media industry.", marks:2,
+      scheme:["Award 1 mark for each correct sector named, up to 2 marks:","• Audio-visual","• Publishing","• Interactive media"] },
+    { q:"Discuss factors a producer should consider when planning a new streaming series for an 18–24 audience.", marks:6,
+      scheme:["Award up to 6 marks for discussion covering AT LEAST THREE of:","• Audience profile — interests, viewing habits, devices","• Platform choice — where the audience already consumes content","• Genre & tone — conventions matching audience expectations","• Marketing — social, influencer, trailers, owned media","• Legal — rights, consent, GDPR","• Scheduling/release window — episode pacing, drop strategy","Award higher marks for discussion that links factors to the audience, not just lists them."] }
+  ],
+  MOCK2: [
+    { q:"State TWO purposes of a mood board.", marks:2,
+      scheme:["Award 1 mark for each valid purpose, up to 2:","• Explore and align the visual style","• Collect references for client review","• Inspire ideas at the start of a project","• Communicate tone to the team"] },
+    { q:"Explain TWO ways a producer can use research to inform the design of a media product.", marks:4,
+      scheme:["Award up to 2 marks each for two explained uses (1 mark for the method, 1 mark for the explanation):","• Surveys / questionnaires to quantify audience preferences","• Focus groups to gather qualitative insights into tone and content","• Secondary reports to map the competitive landscape","• Test screenings to refine the cut before release"] }
+  ],
+  MOCK3: [
+    { q:"State ONE difference between primary and secondary research.", marks:2,
+      scheme:["Award 1 mark for identifying primary as new data collected first-hand.","Award 1 mark for identifying secondary as use of existing sources (reports, articles, statistics)."] },
+    { q:"Discuss the legal and ethical considerations a documentary producer must address when filming members of the public.", marks:6,
+      scheme:["Award up to 6 marks for discussion covering AT LEAST THREE of:","• Informed consent and release forms for identifiable individuals","• Safeguarding vulnerable participants","• Defamation and accuracy in editing","• GDPR / DPA 2018 for personal data","• Copyright when including third-party material","• Location releases and access permissions","Award higher marks for discussion that links consideration to consequence."] }
+  ],
+  MOCK4: [
+    { q:"Explain the purpose of a work plan in pre-production.", marks:4,
+      scheme:["Award up to 4 marks:","• Lists tasks and deadlines","• Identifies resources and responsibilities","• Helps the team manage time and budget","• Provides a tool for monitoring progress and catching issues early"] },
+    { q:"State TWO advantages of using vector graphics for brand assets.", marks:2,
+      scheme:["Award 1 mark each, up to 2:","• Scale without loss of quality","• Editable / re-colourable","• Often small file sizes","• Work at any resolution"] }
+  ],
+  MOCK5: [
+    { q:"State TWO ways representation can be analysed in a media product.", marks:2,
+      scheme:["Award 1 mark each, up to 2:","• Who is included or excluded","• How groups are portrayed (positively, stereotypically, etc.)","• What stories are told (and not told)","• The casting and authorship behind the product"] },
+    { q:"Discuss the considerations a producer must make to ensure ethical representation in a factual programme.", marks:6,
+      scheme:["Award up to 6 marks covering AT LEAST THREE of:","• Informed consent and right of reply","• Avoiding harmful stereotypes","• Diversity of voices and authorship","• Editing choices — what is included, sequenced, omitted","• Duty of care for vulnerable contributors","• Accuracy and avoiding defamation","Award higher marks for discussion linking consideration to audience impact."] }
+  ],
+  MOCK6: [
+    { q:"State TWO ways a producer can promote a new media product.", marks:2,
+      scheme:["Award 1 mark each, up to 2:","• Trailers / teasers","• Social-media campaigns","• Influencer / PR partnerships","• Press kits / press screenings","• Merchandising and tie-ins"] },
+    { q:"Discuss factors that influence the choice of distribution platform for a new short documentary.", marks:6,
+      scheme:["Award up to 6 marks covering AT LEAST THREE of:","• Audience — where the target audience already consumes content","• Cost — production vs hosting vs broadcast fees","• Speed and updates — online enables instant release/iteration","• Reach — global vs regional","• Rights and licensing constraints","• Regulator considerations (Ofcom for broadcast, ASA for ads)","Award higher marks for discussion that weighs trade-offs."] }
+  ]
+};
+
+/* CT drawing tasks (5 prompts for Unit 2 pre-production documents) */
+const CT_DRAWINGS_DATA = [
+  { id:"D1", topic:"U2", kind:"mind-map", title:"Mind map: planning a short documentary about local sustainability",
+    prompt:"Brainstorm and connect early ideas for a 6–10 minute documentary about sustainability initiatives in your local area. Show central topic, key branches (angle, contributors, locations, evidence, style, distribution) and sub-branches.",
+    checklist:["Central topic clear","≥4 main branches","Sub-branches with detail","Use of colour/keywords"] },
+  { id:"D2", topic:"U2", kind:"mood-board", title:"Mood board: 'Future Skills' magazine cover for Y12 students",
+    prompt:"Sketch a mood board for a one-off magazine cover targeted at Y12 students considering vocational pathways. Include palette, font samples, image ideas and a tagline. Annotate why each choice fits the audience.",
+    checklist:["Colour palette","Font samples","≥3 image ideas","Annotations / reasoning"] },
+  { id:"D3", topic:"U2", kind:"visualisation", title:"Visualisation diagram: campaign poster for college Sustainability Week",
+    prompt:"Sketch a visualisation diagram for an A2 campaign poster for Sustainability Week. Show layout — title, hero image, body copy, sponsor logos, contact/QR. Include rough text and shading; annotate hierarchy.",
+    checklist:["Title placement","Hero image area","Body text block","Logo / sponsor area","Annotations"] },
+  { id:"D4", topic:"U2", kind:"storyboard", title:"Storyboard: 60-second product advert for a local creative business",
+    prompt:"Draw a six-frame storyboard for a 60-second advert for a local creative business of your choice. Each frame should show the shot, camera angle, dialogue/SFX, and timing. Include a clear narrative arc.",
+    checklist:["6 frames","Camera angles labelled","Dialogue/SFX notes","Timing per shot","Clear narrative arc"] },
+  { id:"D5", topic:"U2", kind:"wireframe", title:"Wireframe: landing page for a college events series",
+    prompt:"Sketch a low-fidelity wireframe for the landing page of a college events series. Include hero banner, upcoming events list, ticket CTA, social proof and footer/contact. Annotate the user journey.",
+    checklist:["Header/navigation","Hero area","Events list","Call-to-action","Footer / contact","Annotations"] }
+];
+const CT_DRAW_SUBS_DATA = { D1:"U2.1", D2:"U2.1", D3:"U2.1", D4:"U2.1", D5:"U2.1" };
 
 /* Snapshot the R093 content so we can restore it when a teacher views as R093 again. */
 const _SNAPSHOT_R093 = {
@@ -2143,7 +2423,11 @@ const _SNAPSHOT_R093 = {
   FLASH_SUB_BY_TERM: { ...FLASH_SUB_BY_TERM },
   KO_DATA: JSON.parse(JSON.stringify(KO_DATA)),
   MOCKS_INDEX: { ...MOCKS_INDEX },
-  DRAWINGS: [...DRAWINGS]
+  MOCK_SUBS_INDEX: JSON.parse(JSON.stringify(MOCK_SUBS_INDEX)),
+  MOCK_EXPLAIN: JSON.parse(JSON.stringify(MOCK_EXPLAIN)),
+  MOCK_WRITTEN: JSON.parse(JSON.stringify(MOCK_WRITTEN)),
+  DRAWINGS: [...DRAWINGS],
+  DRAW_SUBS: { ...DRAW_SUBS }
 };
 
 function _setObj(target, source){ Object.keys(target).forEach(k => delete target[k]); Object.assign(target, source); }
@@ -2166,8 +2450,12 @@ function applyCourse(course){
     _setArr(FLASHCARDS, CT_FLASHCARDS);
     _setObj(FLASH_SUB_BY_TERM, CT_FLASH_SUB_BY_TERM);
     _setObj(KO_DATA, CT_KO_DATA);
-    _setObj(MOCKS_INDEX, CT_MOCKS_EMPTY);
-    _setArr(DRAWINGS, CT_DRAWINGS_EMPTY);
+    _setObj(MOCKS_INDEX, CT_MOCKS_INDEX_DATA);
+    _setObj(MOCK_SUBS_INDEX, CT_MOCK_SUBS_DATA);
+    _setObj(MOCK_EXPLAIN, CT_MOCK_EXPLAIN_DATA);
+    _setObj(MOCK_WRITTEN, CT_MOCK_WRITTEN_DATA);
+    _setArr(DRAWINGS, CT_DRAWINGS_DATA);
+    _setObj(DRAW_SUBS, CT_DRAW_SUBS_DATA);
   } else {
     _setObj(TOPICS, _SNAPSHOT_R093.TOPICS);
     _setObj(SUBTOPICS, _SNAPSHOT_R093.SUBTOPICS);
@@ -2183,7 +2471,11 @@ function applyCourse(course){
     _setObj(FLASH_SUB_BY_TERM, _SNAPSHOT_R093.FLASH_SUB_BY_TERM);
     _setObj(KO_DATA, _SNAPSHOT_R093.KO_DATA);
     _setObj(MOCKS_INDEX, _SNAPSHOT_R093.MOCKS_INDEX);
+    _setObj(MOCK_SUBS_INDEX, _SNAPSHOT_R093.MOCK_SUBS_INDEX);
+    _setObj(MOCK_EXPLAIN, _SNAPSHOT_R093.MOCK_EXPLAIN);
+    _setObj(MOCK_WRITTEN, _SNAPSHOT_R093.MOCK_WRITTEN);
     _setArr(DRAWINGS, _SNAPSHOT_R093.DRAWINGS);
+    _setObj(DRAW_SUBS, _SNAPSHOT_R093.DRAW_SUBS);
   }
   // Rebuild derived SUB_TITLE lookup
   Object.keys(SUB_TITLE).forEach(k => delete SUB_TITLE[k]);
