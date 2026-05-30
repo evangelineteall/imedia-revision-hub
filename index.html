@@ -2600,6 +2600,15 @@ const mockAPI = {
     this._set("classes", classes);
     return { ok:true };
   },
+  renameClass({ classId, name }){
+    if(!classId || !name) return { ok:false, error:"Missing class id or name." };
+    const classes = this._get("classes", []);
+    const c = classes.find(x => x.id === classId);
+    if(!c) return { ok:false, error:"Class not found." };
+    c.name = String(name).trim();
+    this._set("classes", classes);
+    return { ok:true };
+  },
   addStudent({ classId, studentEmail }){
     studentEmail = studentEmail.toLowerCase();
     const u = this._get("users", []).find(u => u.email.toLowerCase() === studentEmail);
@@ -3316,6 +3325,7 @@ function renderClassesList(){
         </div>
         <div style="display:flex;gap:.4rem;flex-wrap:wrap">
           <button class="btn btn-sm btn-secondary" onclick="openAddStudentModal('${c.id}','${safeName}')">+ Add student</button>
+          ${isOwner ? `<button class="btn btn-sm btn-secondary" onclick="openRenameClassModal('${c.id}','${safeName}')">✏️ Rename</button>` : ''}
           ${isOwner ? `<button class="btn btn-sm btn-secondary" onclick="openShareClassModal('${c.id}','${safeName}')">🤝 Share</button>` : ''}
           ${isOwner ? `<button class="btn btn-sm btn-danger" data-del-class="${c.id}" title="Delete this class">🗑 Delete class</button>` : ''}
         </div>
@@ -3339,6 +3349,30 @@ function renderClassesList(){
   box.querySelectorAll('button[data-unshare-class]').forEach(btn => {
     btn.onclick = () => unshareClass(btn.dataset.unshareClass, btn.dataset.unshareTeacher);
   });
+}
+
+function openRenameClassModal(classId, currentName){
+  document.getElementById("modal-body").innerHTML = `
+    <h3>Rename class</h3>
+    <div class="field"><label>New class name</label><input type="text" id="rename-class-name" value="${currentName}"></div>
+    <p style="font-size:.85rem;color:var(--muted)">Students will see the new name straight away.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="renameClass('${classId}')">Save</button>
+    </div>
+  `;
+  document.getElementById("modal-back").classList.add("show");
+  setTimeout(()=>{ const i = document.getElementById("rename-class-name"); if(i){ i.focus(); i.select(); } }, 50);
+}
+async function renameClass(classId){
+  const name = document.getElementById("rename-class-name").value.trim();
+  if(!name) return;
+  const r = await api("renameClass", { classId, name });
+  closeModal();
+  if(r && r.ok){
+    await loadTeacherData();
+    renderClassesList(); renderTeacherHome(); renderProgress(); renderAssignForm(); renderAssignList();
+  } else alert((r && r.error) || "Could not rename class.");
 }
 
 function openShareClassModal(classId, className){
