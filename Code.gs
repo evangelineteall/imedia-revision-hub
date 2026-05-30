@@ -234,6 +234,14 @@ const ACTIONS = {
     return { ok: true, id };
   },
 
+  renameClass({ classId, name }) {
+    if (!classId || !name) return { ok: false, error: "Missing class id or name." };
+    const cls = readAll(SHEETS.CLASSES).find(c => c.id === classId);
+    if (!cls) return { ok: false, error: "Class not found." };
+    updateRow(SHEETS.CLASSES, "id", classId, { name: String(name).trim() });
+    return { ok: true };
+  },
+
   shareClass({ classId, teacherEmail }) {
     if (!classId || !teacherEmail) return { ok: false, error: "Missing class id or teacher email." };
     teacherEmail = String(teacherEmail).toLowerCase();
