@@ -21,7 +21,8 @@ const SHEETS = {
   FLASHCARDS: "Flashcards",
   MOCKS: "Mocks",
   ASSIGNMENTS: "Assignments",
-  DRAWINGS: "Drawings"
+  DRAWINGS: "Drawings",
+  TEACHER_QUESTIONS: "TeacherQuestions"
 };
 
 /* Any teacher in this list automatically gets access to every class created
@@ -40,7 +41,8 @@ const HEADERS = {
   Flashcards:      ["timestamp","email","term","status"],
   Mocks:           ["timestamp","email","mockId","score","total","details"],
   Assignments:     ["id","classId","taskType","topic","dueDate","createdBy","createdAt","note","releaseDate","questionIndexes"],
-  Drawings:        ["id","timestamp","email","drawingId","imageData","mark","feedback","markedBy"]
+  Drawings:        ["id","timestamp","email","drawingId","imageData","mark","feedback","markedBy"],
+  TeacherQuestions:["id","courseCode","taskType","topic","sub","data","createdBy","createdAt"]
 };
 
 /* ---------- Sheet helpers ---------- */
@@ -280,6 +282,58 @@ const ACTIONS = {
     if (!list.includes(studentEmail)) list.push(studentEmail);
     updateRow(SHEETS.CLASSES, "id", classId, { studentsCsv: list.join(",") });
     return { ok: true };
+  },
+
+  addTeacherQuestion({ courseCode, taskType, topic, sub, data, createdBy }) {
+    if (!taskType || !topic || !data) return { ok: false, error: "Missing fields." };
+    const id = "tq_" + new Date().getTime() + "_" + Math.floor(Math.random()*1000);
+    appendRow(SHEETS.TEACHER_QUESTIONS, {
+      id,
+      courseCode: (courseCode || "R093").toUpperCase(),
+      taskType, topic,
+      sub: sub || "",
+      data: typeof data === "string" ? data : JSON.stringify(data),
+      createdBy: (createdBy || "").toLowerCase(),
+      createdAt: new Date().toISOString()
+    });
+    return { ok: true, id };
+  },
+
+  deleteTeacherQuestion({ id }) {
+    if (!id) return { ok: false, error: "Missing question id." };
+    const sheet = getSheet(SHEETS.TEACHER_QUESTIONS);
+    const values = sheet.getDataRange().getValues();
+    const headers = values[0];
+    const idCol = headers.indexOf("id");
+    if (idCol === -1) return { ok: false, error: "id column not found." };
+    for (let r = values.length - 1; r >= 1; r--) {
+      if (String(values[r][idCol]) === String(id)) {
+        sheet.deleteRow(r + 1);
+        return { ok: true };
+      }
+    }
+    return { ok: false, error: "Question not found." };
+  },
+
+  listTeacherQuestions({ courseCode }) {
+    const wanted = (courseCode || "R093").toUpperCase();
+    const rows = readAll(SHEETS.TEACHER_QUESTIONS)
+      .filter(r => String(r.courseCode || "R093").toUpperCase() === wanted)
+      .map(r => {
+        let parsed = r.data;
+        try { parsed = JSON.parse(r.data); } catch(e){}
+        return {
+          id: r.id,
+          courseCode: r.courseCode || "R093",
+          taskType: r.taskType,
+          topic: r.topic,
+          sub: r.sub || "",
+          data: parsed,
+          createdBy: r.createdBy || "",
+          createdAt: String(r.createdAt || "")
+        };
+      });
+    return { ok: true, questions: rows };
   },
 
   assignHomework({ classId, taskType, topic, dueDate, createdBy, note, releaseDate, questionIndexes }) {
