@@ -39,7 +39,7 @@ const HEADERS = {
   WrittenAnswers:  ["id","timestamp","email","questionId","answer","mark","feedback","markedBy"],
   Flashcards:      ["timestamp","email","term","status"],
   Mocks:           ["timestamp","email","mockId","score","total","details"],
-  Assignments:     ["id","classId","taskType","topic","dueDate","createdBy","createdAt","note","releaseDate"],
+  Assignments:     ["id","classId","taskType","topic","dueDate","createdBy","createdAt","note","releaseDate","questionIndexes"],
   Drawings:        ["id","timestamp","email","drawingId","imageData","mark","feedback","markedBy"]
 };
 
@@ -282,14 +282,15 @@ const ACTIONS = {
     return { ok: true };
   },
 
-  assignHomework({ classId, taskType, topic, dueDate, createdBy, note, releaseDate }) {
+  assignHomework({ classId, taskType, topic, dueDate, createdBy, note, releaseDate, questionIndexes }) {
     const id = "a_" + new Date().getTime();
     appendRow(SHEETS.ASSIGNMENTS, {
       id, classId, taskType, topic, dueDate,
       createdBy: createdBy.toLowerCase(),
       createdAt: new Date().toISOString(),
       note: note || "",
-      releaseDate: releaseDate || new Date().toISOString().slice(0,10)
+      releaseDate: releaseDate || new Date().toISOString().slice(0,10),
+      questionIndexes: questionIndexes || ""
     });
     return { ok: true, id };
   },
@@ -422,7 +423,7 @@ const ACTIONS = {
     const classes = readAll(SHEETS.CLASSES).filter(c => (c.studentsCsv||"").split(",").map(s=>s.trim().toLowerCase()).includes(email));
     const classIds = classes.map(c => c.id);
     const assignments = readAll(SHEETS.ASSIGNMENTS).filter(a => classIds.includes(a.classId))
-      .map(a => ({ id:a.id, classId:a.classId, taskType:a.taskType, topic:a.topic, dueDate:String(a.dueDate), note: a.note || "", releaseDate: String(a.releaseDate || "") }));
+      .map(a => ({ id:a.id, classId:a.classId, taskType:a.taskType, topic:a.topic, dueDate:String(a.dueDate), note: a.note || "", releaseDate: String(a.releaseDate || ""), questionIndexes: String(a.questionIndexes || "") }));
 
     // Spaced-repetition schedule for flashcards (computed from history)
     const allFlash = readAll(SHEETS.FLASHCARDS).filter(r => String(r.email).toLowerCase() === email);
@@ -502,7 +503,7 @@ const ACTIONS = {
 
     const classIds = classes.map(c => c.id);
     const assignments = readAll(SHEETS.ASSIGNMENTS).filter(a => classIds.includes(a.classId))
-      .map(a => ({ id:a.id, classId:a.classId, taskType:a.taskType, topic:a.topic, dueDate:String(a.dueDate), note: a.note || "", releaseDate: String(a.releaseDate || "") }));
+      .map(a => ({ id:a.id, classId:a.classId, taskType:a.taskType, topic:a.topic, dueDate:String(a.dueDate), note: a.note || "", releaseDate: String(a.releaseDate || ""), questionIndexes: String(a.questionIndexes || "") }));
 
     return { ok:true, data: { classes, allProgress, pendingMarking, pendingDrawings, assignments } };
   }
