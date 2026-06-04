@@ -428,6 +428,7 @@
       <button data-panel="t-analytics">Analytics</button>
       <button data-panel="t-mark">Marking</button>
       <button data-panel="t-assign">Assign</button>
+      <button data-panel="t-questions">Questions</button>
     </nav>
 
     <!-- ====== STUDENT PANELS ====== -->
@@ -691,6 +692,21 @@
       <div class="card">
         <h2>Currently assigned</h2>
         <div id="assign-list"><div class="empty">Loading&hellip;</div></div>
+      </div>
+    </section>
+
+    <section class="panel teacher-only" id="t-questions" style="display:none">
+      <div class="card">
+        <h2>Question bank <span class="pill">your own questions</span></h2>
+        <p class="lead">Add your own quiz questions. They appear alongside the built-in ones for students on your course, and show up in the assign-homework picker so you can choose them too.</p>
+        <div class="row" style="gap:.6rem;margin-bottom:.85rem;align-items:end">
+          <div class="field" style="flex:1;min-width:160px;margin:0">
+            <label>Topic</label>
+            <select id="tq-filter-topic" class="btn btn-sm btn-secondary" style="padding:.45rem .7rem;width:100%"></select>
+          </div>
+          <button class="btn btn-sm btn-accent" onclick="openAddTeacherQuestionModal()">+ Add quiz question</button>
+        </div>
+        <div id="tq-list"><div class="empty">Loading&hellip;</div></div>
       </div>
     </section>
   </main>
@@ -3713,6 +3729,8 @@ document.querySelectorAll(".nav-tabs button").forEach(btn=>{
     document.querySelectorAll(`.panel[id^="${prefix}"]`).forEach(p=>p.classList.remove("active"));
     const el = document.getElementById(target);
     if(el) el.classList.add("active");
+    // Lazy-render Questions panel when shown
+    if(target === "t-questions" && typeof renderQuestionBank === "function") renderQuestionBank();
   });
 });
 
@@ -3858,7 +3876,17 @@ function startQuiz(topic, questionIndexes){
   const runner = document.getElementById("quiz-runner");
   runner.style.display = "block";
   document.getElementById("quiz-topics").parentElement.style.display = "none";
-  const fullData = QUIZZES[topic];
+  const builtIn = QUIZZES[topic] || [];
+  // Append teacher-authored questions to the end so indexes for built-ins stay stable.
+  const teacherQs = (typeof getTeacherQuestionsFor === "function" ? getTeacherQuestionsFor("quiz", topic) : []).map(tq => ({
+    q: (tq.data && tq.data.q) || "(teacher question)",
+    options: (tq.data && tq.data.options) || ["","","",""],
+    answer: (tq.data && typeof tq.data.answer === "number") ? tq.data.answer : 0,
+    explain: (tq.data && tq.data.explain) || "",
+    _teacher: true,
+    _teacherSub: tq.sub || null
+  }));
+  const fullData = builtIn.concat(teacherQs);
   // Optional teacher-picked subset. originalIdx[displayedQi] = original question index.
   const originalIdx = (Array.isArray(questionIndexes) && questionIndexes.length)
     ? questionIndexes.filter(i => i >= 0 && i < fullData.length)
@@ -3891,7 +3919,7 @@ function startQuiz(topic, questionIndexes){
         opts.forEach(b=>b.disabled=true);
         const isCorrect = (oi === it.answer);
         // Use the ORIGINAL question index for sub-topic / analytics consistency
-        attempts.push({ qi: origQi, correct: isCorrect, sub: subFor("quiz", topic, origQi) });
+        attempts.push({ qi: origQi, correct: isCorrect, sub: (it._teacher && it._teacherSub) ? it._teacherSub : subFor("quiz", topic, origQi) });
         if(isCorrect){
           btn.classList.add("correct");
           fb.className = "feedback show correct";
@@ -4638,9 +4666,16 @@ function refreshAssignQuestionsPicker(){
   const topic = document.getElementById("assign-topic").value;
 
   // Build the list of question previews based on task type
-  let items = []; // {idx, preview}
+  let items = []; // {idx, preview, teacher}
   if(taskType === "quiz" && QUIZZES[topic]){
+    const builtInLen = QUIZZES[topic].length;
     items = QUIZZES[topic].map((q,i) => ({ idx:i, preview:`Q${i+1}: ${q.q.replace(/<[^>]+>/g,"").slice(0,80)}` }));
+    // Append teacher-authored questions (their idx is offset past the built-ins)
+    const teacherQs = (typeof getTeacherQuestionsFor === "function" ? getTeacherQuestionsFor("quiz", topic) : []);
+    teacherQs.forEach((tq, j) => {
+      const q = ((tq.data && tq.data.q) || "(teacher question)").replace(/<[^>]+>/g,"").slice(0,80);
+      items.push({ idx: builtInLen + j, preview: `T${j+1}: ${q}`, teacher: true });
+    });
   } else if(taskType === "blanks" && BLANKS[topic]){
     items = BLANKS[topic].map((b,i) => ({ idx:i, preview:`Q${i+1}: ${b.text.replace(/___/g,"___").slice(0,80)}` }));
   } else if(taskType === "match" && MATCHUPS[topic]){
@@ -4660,12 +4695,16 @@ function refreshAssignQuestionsPicker(){
     return;
   }
   field.style.display = "";
-  picker.innerHTML = items.map(it => `
-    <label style="display:inline-flex;align-items:center;gap:.3rem;background:#fff;border:1px solid var(--border);border-radius:999px;padding:.25rem .6rem;font-size:.78rem;cursor:pointer" title="${it.preview.replace(/"/g,'&quot;')}">
+  picker.innerHTML = items.map(it => {
+    const bg = it.teacher ? "#fff8e6" : "#fff";
+    const bd = it.teacher ? "var(--accent, #d97706)" : "var(--border)";
+    const tag = it.teacher ? '<span style="font-size:.65rem;background:#d97706;color:#fff;padding:1px 5px;border-radius:6px;margin-right:.25rem">TEACHER</span>' : '';
+    return `
+    <label style="display:inline-flex;align-items:center;gap:.3rem;background:${bg};border:1px solid ${bd};border-radius:999px;padding:.25rem .6rem;font-size:.78rem;cursor:pointer" title="${it.preview.replace(/"/g,'&quot;')}">
       <input type="checkbox" name="assign-q-cb" value="${it.idx}" checked style="margin:0">
-      ${it.preview.length > 32 ? it.preview.slice(0,32) + "…" : it.preview}
-    </label>
-  `).join("");
+      ${tag}${it.preview.length > 32 ? it.preview.slice(0,32) + "…" : it.preview}
+    </label>`;
+  }).join("");
   // Update count when ticked
   picker.querySelectorAll('input[name="assign-q-cb"]').forEach(cb => {
     cb.addEventListener("change", updateAssignQuestionsCount);
@@ -5411,9 +5450,11 @@ enterApp = async function(){
     renderMatchTopics();
     renderBlanksTopics();
     renderDrawList();
+    try{ await loadTeacherQuestions(); }catch(e){}
   } else if(user && user.role === "teacher"){
     refreshAssignTopicField();
     renderAnalytics();
+    try{ await loadTeacherQuestions(); renderQuestionBank(); }catch(e){}
   }
 };
 
@@ -5735,6 +5776,43 @@ mockAPI.getTeacherData = function(p){
   return r;
 };
 
+// Teacher-authored question bank actions
+mockAPI.addTeacherQuestion = function({ courseCode, taskType, topic, sub, data, createdBy }){
+  if(!taskType || !topic || !data) return { ok:false, error:"Missing fields." };
+  const arr = this._get("teacherQuestions", []);
+  const id = "tq_" + Date.now() + "_" + Math.floor(Math.random()*1000);
+  arr.push({
+    id,
+    courseCode: (courseCode || "R093").toUpperCase(),
+    taskType, topic,
+    sub: sub || "",
+    data: typeof data === "string" ? data : JSON.stringify(data),
+    createdBy: (createdBy || "").toLowerCase(),
+    createdAt: new Date().toISOString()
+  });
+  this._set("teacherQuestions", arr);
+  return { ok:true, id };
+};
+mockAPI.deleteTeacherQuestion = function({ id }){
+  if(!id) return { ok:false, error:"Missing question id." };
+  const arr = this._get("teacherQuestions", []);
+  const after = arr.filter(x => x.id !== id);
+  if(after.length === arr.length) return { ok:false, error:"Question not found." };
+  this._set("teacherQuestions", after);
+  return { ok:true };
+};
+mockAPI.listTeacherQuestions = function({ courseCode }){
+  const wanted = (courseCode || "R093").toUpperCase();
+  const rows = this._get("teacherQuestions", [])
+    .filter(r => String(r.courseCode || "R093").toUpperCase() === wanted)
+    .map(r => {
+      let parsed = r.data;
+      try { parsed = JSON.parse(r.data); } catch(e){}
+      return { id:r.id, courseCode:r.courseCode||"R093", taskType:r.taskType, topic:r.topic, sub:r.sub||"", data:parsed, createdBy:r.createdBy||"", createdAt:r.createdAt||"" };
+    });
+  return { ok:true, questions: rows };
+};
+
 // Wrap assignHomework to also store the note + release date + question selection
 const _origMockAssign = mockAPI.assignHomework;
 mockAPI.assignHomework = function(p){
@@ -5751,6 +5829,141 @@ mockAPI.assignHomework = function(p){
   }
   return r;
 };
+
+/* ============================================================
+   TEACHER  —  QUESTION BANK
+   ============================================================ */
+let _teacherQuestions = []; // cache of teacher-authored questions for current course
+
+async function loadTeacherQuestions(){
+  const courseCode = ((user && user.course) || "R093").toUpperCase();
+  const r = await api("listTeacherQuestions", { courseCode });
+  _teacherQuestions = (r && r.ok) ? (r.questions || []) : [];
+}
+
+function getTeacherQuestionsFor(taskType, topic){
+  return _teacherQuestions.filter(q => q.taskType === taskType && q.topic === topic);
+}
+
+function renderQuestionBank(){
+  const sel = document.getElementById("tq-filter-topic");
+  const list = document.getElementById("tq-list");
+  if(!sel || !list) return;
+  // Populate topic dropdown using current course's TOPICS
+  const topicKeys = Object.keys(TOPICS);
+  sel.innerHTML = topicKeys.map(t => `<option value="${t}">${TOPICS[t].title}</option>`).join("");
+  sel.onchange = renderQuestionBank;
+  const topic = sel.value || topicKeys[0];
+  if(!topic){ list.innerHTML = '<div class="empty">No topic selected.</div>'; return; }
+  const mine = getTeacherQuestionsFor("quiz", topic);
+  if(!mine.length){
+    list.innerHTML = '<div class="empty">No teacher questions yet for this topic. Click "+ Add quiz question" to create one.</div>';
+    return;
+  }
+  list.innerHTML = "";
+  mine.forEach(q => {
+    const d = q.data || {};
+    const correctText = (d.options && d.options[d.answer]) || "(no answer)";
+    const div = document.createElement("div");
+    div.className = "q-block";
+    div.style.borderLeft = "4px solid var(--accent)";
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.6rem;flex-wrap:wrap">
+        <div style="flex:1;min-width:240px">
+          <div class="q-num">${q.sub || topic} &middot; added by ${q.createdBy || 'you'}</div>
+          <div class="q-text" style="margin:.3rem 0">${(d.q || "(no question text)")}</div>
+          <div style="font-size:.85rem;color:var(--muted)">
+            ${(d.options || []).map((o,i)=>`${i+1}. ${o}${i===d.answer?' <strong style="color:var(--success)">✓</strong>':''}`).join(" &middot; ")}
+          </div>
+          ${d.explain ? `<div style="margin-top:.4rem;font-size:.82rem;color:var(--muted)">💡 ${d.explain}</div>` : ""}
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="deleteTeacherQuestion('${q.id}')" title="Delete this question">🗑</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function openAddTeacherQuestionModal(){
+  const topicKeys = Object.keys(TOPICS);
+  const topicSel = document.getElementById("tq-filter-topic");
+  const currentTopic = (topicSel && topicSel.value) || topicKeys[0];
+  const subs = (SUBTOPICS[currentTopic] || []);
+  document.getElementById("modal-body").innerHTML = `
+    <h3>Add a quiz question</h3>
+    <div class="field">
+      <label>Topic</label>
+      <select id="tq-topic">${topicKeys.map(t => `<option value="${t}"${t===currentTopic?' selected':''}>${TOPICS[t].title}</option>`).join("")}</select>
+    </div>
+    <div class="field">
+      <label>Sub-topic <span style="color:var(--muted);font-weight:400">(for analytics)</span></label>
+      <select id="tq-sub"><option value="">— none —</option>${subs.map(s => `<option value="${s.id}">${s.id} &mdash; ${s.title}</option>`).join("")}</select>
+    </div>
+    <div class="field">
+      <label>Question</label>
+      <textarea id="tq-q" placeholder="e.g. Which sector covers TV, film and radio?" style="min-height:70px"></textarea>
+    </div>
+    <div class="field"><label>Option A</label><input type="text" id="tq-opt-0"></div>
+    <div class="field"><label>Option B</label><input type="text" id="tq-opt-1"></div>
+    <div class="field"><label>Option C</label><input type="text" id="tq-opt-2"></div>
+    <div class="field"><label>Option D</label><input type="text" id="tq-opt-3"></div>
+    <div class="field">
+      <label>Correct answer</label>
+      <select id="tq-answer">
+        <option value="0">A</option>
+        <option value="1">B</option>
+        <option value="2">C</option>
+        <option value="3">D</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Explanation <span style="color:var(--muted);font-weight:400">(shown to students when they answer)</span></label>
+      <textarea id="tq-explain" placeholder="e.g. Audio-visual covers TV, film, radio and streaming." style="min-height:50px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveTeacherQuestion()">Save question</button>
+    </div>
+  `;
+  // When topic changes, refresh sub-topic options
+  document.getElementById("tq-topic").addEventListener("change", () => {
+    const t = document.getElementById("tq-topic").value;
+    const ss = SUBTOPICS[t] || [];
+    document.getElementById("tq-sub").innerHTML = '<option value="">— none —</option>' + ss.map(s => `<option value="${s.id}">${s.id} &mdash; ${s.title}</option>`).join("");
+  });
+  document.getElementById("modal-back").classList.add("show");
+}
+
+async function saveTeacherQuestion(){
+  const topic = document.getElementById("tq-topic").value;
+  const sub = document.getElementById("tq-sub").value;
+  const q = document.getElementById("tq-q").value.trim();
+  const options = [0,1,2,3].map(i => document.getElementById("tq-opt-"+i).value.trim());
+  const answer = parseInt(document.getElementById("tq-answer").value, 10);
+  const explain = document.getElementById("tq-explain").value.trim();
+  if(!q || options.some(o => !o)){ alert("Please fill in the question and all four options."); return; }
+  const data = { q, options, answer, explain };
+  const courseCode = ((user && user.course) || "R093").toUpperCase();
+  const r = await api("addTeacherQuestion", { courseCode, taskType:"quiz", topic, sub, data, createdBy: user.email });
+  closeModal();
+  if(r && r.ok){
+    await loadTeacherQuestions();
+    renderQuestionBank();
+  } else {
+    alert((r && r.error) || "Could not save question.");
+  }
+}
+
+async function deleteTeacherQuestion(id){
+  if(!confirm("Delete this question? This cannot be undone.")) return;
+  const r = await api("deleteTeacherQuestion", { id });
+  if(r && r.ok){
+    await loadTeacherQuestions();
+    renderQuestionBank();
+  } else {
+    alert((r && r.error) || "Could not delete question.");
+  }
+}
 
 /* ============================================================
    TEACHER  —  ANALYTICS  (per-question + sub-topic breakdown)
