@@ -349,7 +349,7 @@
            onerror="this.outerHTML='<svg width=\'64\' height=\'80\' style=\'filter:drop-shadow(0 3px 6px rgba(13,71,161,.25))\'><use href=\'#rts-crest\'/></svg>'">
     </div>
     <h1>Computing Revision Hub</h1>
-    <p class="sub">Ralph Thoresby School<br><strong style="color:var(--primary)">Cambridge Nationals iMedia &middot; Cambridge Technicals Digital Media</strong></p>
+    <p class="sub">Ralph Thoresby School<br><strong style="color:var(--primary)">iMedia &middot; Digital Media &middot; Computer Science</strong></p>
     <div class="login-tabs">
       <button class="active" data-mode="login">Sign in</button>
       <button data-mode="register">Register</button>
@@ -373,6 +373,7 @@
         <select id="reg-course">
           <option value="R093">iMedia (Y9–Y11)</option>
           <option value="CT">Digital Media (Y12–Y13)</option>
+          <option value="CS">Computer Science (GCSE, J277)</option>
         </select>
       </div>
       <div class="field">
@@ -660,6 +661,15 @@
               <option value="TA3">TA3 &mdash; Pre-production planning</option>
               <option value="TA4">TA4 &mdash; Distribution considerations</option>
             </select>
+          </div>
+          <div class="field" id="assign-questions-field" style="display:none">
+            <label>Which questions? <span style="color:var(--muted);font-weight:400">— leave all ticked for the whole set</span></label>
+            <div id="assign-questions-picker" style="display:flex;flex-wrap:wrap;gap:.3rem;background:#fafbfd;border:1.5px solid var(--border);border-radius:8px;padding:.6rem;max-height:240px;overflow:auto"></div>
+            <div style="display:flex;gap:.4rem;align-items:center;margin-top:.4rem;font-size:.82rem">
+              <button type="button" class="btn btn-sm btn-secondary" onclick="toggleAllAssignQuestions(true)" style="padding:.25rem .55rem;font-size:.72rem">Select all</button>
+              <button type="button" class="btn btn-sm btn-secondary" onclick="toggleAllAssignQuestions(false)" style="padding:.25rem .55rem;font-size:.72rem">Clear all</button>
+              <span id="assign-questions-count" style="color:var(--muted);margin-left:.4rem">All selected</span>
+            </div>
           </div>
           <div class="field">
             <label>Note for students <span style="color:var(--muted);font-weight:400">(optional)</span></label>
@@ -2484,6 +2494,744 @@ const CT_DRAWINGS_DATA = [
 ];
 const CT_DRAW_SUBS_DATA = { D1:"U2.1", D2:"U2.1", D3:"U2.1", D4:"U2.1", D5:"U2.1" };
 
+/* ============================================================
+   OCR GCSE COMPUTER SCIENCE (J277) — PAPER 1 (Computer systems)
+   Phase 1: 1 quiz per topic with original exam-style questions.
+   Not reproductions of past papers — content covers the publicly
+   available specification topics in original wording.
+   ============================================================ */
+const CS_COURSE_NAME = "OCR GCSE Computer Science (J277)";
+const CS_COURSE_SUBTITLE = "Paper 1 — Computer systems";
+
+const CS_TOPICS = {
+  T11: { title: "1.1 &mdash; Systems architecture", colour: "var(--ta1)" },
+  T12: { title: "1.2 &mdash; Memory and storage", colour: "var(--ta2)" },
+  T13: { title: "1.3 &mdash; Networks, connections and protocols", colour: "var(--ta3)" },
+  T14: { title: "1.4 &mdash; Network security", colour: "var(--ta4)" },
+  T15: { title: "1.5 &mdash; Systems software", colour: "var(--primary)" },
+  T16: { title: "1.6 &mdash; Ethical, legal, cultural &amp; environmental impacts", colour: "var(--accent-dark)" }
+};
+
+const CS_SUBTOPICS = {
+  T11: [
+    { id: "T11.1", title: "Architecture of the CPU" },
+    { id: "T11.2", title: "CPU performance" },
+    { id: "T11.3", title: "Embedded systems" }
+  ],
+  T12: [
+    { id: "T12.1", title: "Primary storage" },
+    { id: "T12.2", title: "Secondary storage" },
+    { id: "T12.3", title: "Units and binary" },
+    { id: "T12.4", title: "Compression" }
+  ],
+  T13: [
+    { id: "T13.1", title: "Networks and topologies" },
+    { id: "T13.2", title: "Protocols and layers" }
+  ],
+  T14: [
+    { id: "T14.1", title: "Threats" },
+    { id: "T14.2", title: "Prevention" }
+  ],
+  T15: [
+    { id: "T15.1", title: "Operating systems" },
+    { id: "T15.2", title: "Utility software" }
+  ],
+  T16: [
+    { id: "T16.1", title: "Ethical, cultural &amp; environmental" },
+    { id: "T16.2", title: "Legal" },
+    { id: "T16.3", title: "Privacy" }
+  ]
+};
+
+const CS_QUIZZES = {
+  T11: [
+    { q:"In the Fetch-Decode-Execute cycle, which step retrieves the next instruction from memory?", options:["Fetch","Decode","Execute","Halt"], answer:0, explain:"Fetch pulls the next instruction from main memory into the CPU." },
+    { q:"Which register holds the address of the next instruction to be executed?", options:["MAR","MDR","Program Counter (PC)","Accumulator"], answer:2, explain:"The Program Counter (PC) stores the address of the next instruction." },
+    { q:"What does the ALU primarily do?", options:["Stores the operating system","Performs arithmetic and logic operations","Connects peripherals","Manages files"], answer:1, explain:"The Arithmetic Logic Unit performs calculations and logical comparisons." },
+    { q:"What is the role of the Control Unit (CU)?", options:["Performs calculations","Stores data permanently","Coordinates the activities of the CPU","Powers the display"], answer:2, explain:"The Control Unit directs the operation of the processor by managing signals and the FDE cycle." },
+    { q:"Increasing the clock speed of a CPU generally&hellip;", options:["Reduces performance","Increases the number of instructions executed per second","Has no effect","Replaces RAM"], answer:1, explain:"Higher clock speed = more cycles per second = more instructions per second (within thermal limits)." },
+    { q:"More CPU cores allow a computer to&hellip;", options:["Use less power always","Execute multiple tasks in parallel","Avoid needing cache","Stop using RAM"], answer:1, explain:"Multiple cores can process separate instructions in parallel, improving multitasking and throughput." },
+    { q:"What is the purpose of cache memory?", options:["Permanent storage","Very fast memory close to the CPU to speed up access to frequently used data","Backup storage","Audio buffer only"], answer:1, explain:"Cache holds frequently or recently used data close to the CPU to reduce access time." },
+    { q:"What does MAR stand for?", options:["Memory Access Register","Memory Address Register","Main Arithmetic Register","Manage Active Resources"], answer:1, explain:"The Memory Address Register holds the address of the location being read from or written to." },
+    { q:"What does MDR hold?", options:["The next instruction's address","Data being transferred to or from memory","The accumulator value only","Cache contents only"], answer:1, explain:"The Memory Data Register holds the data being moved between the CPU and memory." },
+    { q:"Which is a typical characteristic of an embedded system?", options:["Runs a full desktop OS","Dedicated to a specific task with limited resources","Always requires a monitor","Cannot use sensors"], answer:1, explain:"Embedded systems are purpose-built for specific tasks with constrained hardware (e.g., washing machine controllers)." },
+    { q:"Which of these is BEST described as an embedded system?", options:["A gaming laptop","A microwave oven's control unit","A general-purpose PC","A web server farm"], answer:1, explain:"The microwave's controller is dedicated, low-power and runs fixed firmware — classic embedded system." },
+    { q:"Von Neumann architecture is characterised by&hellip;", options:["Separate memory for data and instructions","A single shared memory for data and instructions","No use of registers","Always using GPUs"], answer:1, explain:"Von Neumann uses one shared memory for both data and instructions, accessed via the same buses." }
+  ],
+  T12: [
+    { q:"Which best describes RAM?", options:["Read-only, non-volatile","Volatile working memory used while programs run","Permanent backup storage","An input device"], answer:1, explain:"RAM is volatile (contents lost on power off) and stores currently running programs and data." },
+    { q:"Which best describes ROM?", options:["Volatile working memory","Non-volatile memory often holding boot/startup instructions","An optical disc","A type of network protocol"], answer:1, explain:"ROM is non-volatile and typically holds firmware like BIOS/bootloader code." },
+    { q:"What is virtual memory used for?", options:["Permanent backup","Using part of secondary storage when RAM is full","Replacing the CPU","Encrypting files"], answer:1, explain:"Virtual memory uses secondary storage as an extension when RAM runs low, swapping pages in and out." },
+    { q:"Which is generally FASTER for typical access?", options:["HDD","SSD","Magnetic tape","Floppy disk"], answer:1, explain:"SSDs have no moving parts and use flash memory, giving much faster random access than HDDs." },
+    { q:"DVD is an example of which type of storage?", options:["Magnetic","Optical","Solid state","Cloud"], answer:1, explain:"DVDs use laser/optical technology to read pits and lands on a reflective disc surface." },
+    { q:"A traditional hard disk drive (HDD) uses which storage technology?", options:["Optical","Magnetic","Flash","Quantum"], answer:1, explain:"HDDs store data using magnetic patterns on spinning platters read by a moving head." },
+    { q:"How many bits are in a byte?", options:["4","8","16","1024"], answer:1, explain:"By convention, 1 byte = 8 bits." },
+    { q:"Which is the largest of these units?", options:["1 KB","1 MB","1 GB","1 TB"], answer:3, explain:"TB > GB > MB > KB. 1 TB is roughly 1000 GB." },
+    { q:"Lossy compression&hellip;", options:["Loses no data","Removes some data permanently to reduce file size","Always produces larger files","Is only used on text"], answer:1, explain:"Lossy compression discards detail (e.g., JPG, MP3) to shrink file size at the cost of quality." },
+    { q:"Lossless compression&hellip;", options:["Discards data","Preserves all original data so the file can be exactly reconstructed","Cannot be used on images","Only works on audio"], answer:1, explain:"Lossless compression (e.g., PNG, FLAC, ZIP) lets you reconstruct the original file bit-for-bit." },
+    { q:"Why might a developer compress images on a website?", options:["To make pages load slower","To reduce file size and improve loading times","To use more storage","To stop browsers loading them"], answer:1, explain:"Smaller files transfer faster, improving page load times and reducing bandwidth use." },
+    { q:"Which is a likely advantage of an SSD over an HDD?", options:["Cheaper per GB","Higher capacity","Faster access and no moving parts","Always uses optical media"], answer:2, explain:"SSDs are faster, more durable (no moving parts) and use less power; HDDs are usually cheaper per GB." }
+  ],
+  T13: [
+    { q:"A LAN typically covers&hellip;", options:["A single building or small geographical area","Multiple countries","The entire internet","Only a single device"], answer:0, explain:"A Local Area Network covers a small area such as one building or campus." },
+    { q:"A WAN&hellip;", options:["Only spans one room","Covers a large geographical area, often using third-party infrastructure","Cannot use the internet","Is always wireless"], answer:1, explain:"A Wide Area Network spans large distances, often using leased lines or the internet." },
+    { q:"In a STAR topology, all devices&hellip;", options:["Connect to each other directly","Connect through a central switch or hub","Form a ring","Have no central device"], answer:1, explain:"In star, every device connects back to a central hub/switch." },
+    { q:"An advantage of a MESH topology is&hellip;", options:["Only one cable is needed","Multiple paths between nodes increase resilience","It cannot use wireless","It needs no IP addresses"], answer:1, explain:"Mesh provides redundant paths, so failure of a single link doesn't take the network down." },
+    { q:"TCP/IP is&hellip;", options:["An operating system","A suite of protocols that governs internet communication","A type of cable","An anti-virus program"], answer:1, explain:"TCP/IP is the foundational suite of protocols for internet communication." },
+    { q:"HTTP is used to&hellip;", options:["Send email","Transfer web pages between client and server","Encrypt files","Manage printers"], answer:1, explain:"HyperText Transfer Protocol is used to request and serve web pages." },
+    { q:"HTTPS adds what compared to HTTP?", options:["More animations","Encryption and authentication via TLS/SSL","Slower transfers always","Mandatory CAPTCHAs"], answer:1, explain:"HTTPS encrypts traffic using TLS, protecting data in transit." },
+    { q:"Which protocol is used to SEND email?", options:["SMTP","HTTP","FTP","DNS"], answer:0, explain:"Simple Mail Transfer Protocol sends outgoing mail between servers." },
+    { q:"Which protocol is used to transfer files between computers?", options:["FTP","HTTP","DNS","ARP"], answer:0, explain:"File Transfer Protocol is designed for file transfers between hosts." },
+    { q:"What does a SWITCH do on a LAN?", options:["Connects devices and forwards traffic only to the intended recipient","Provides internet access","Replaces all servers","Encrypts files"], answer:0, explain:"Switches use MAC addresses to forward frames only to the correct port, unlike hubs." },
+    { q:"What does a ROUTER do?", options:["Provides Wi-Fi only","Routes packets between different networks (e.g., LAN to internet)","Stores web pages","Compresses files"], answer:1, explain:"Routers forward IP packets between networks based on routing tables." },
+    { q:"DNS is used to&hellip;", options:["Encrypt all messages","Translate domain names into IP addresses","Test cables","Provide email storage"], answer:1, explain:"The Domain Name System resolves human-readable names like google.com into IP addresses." }
+  ],
+  T14: [
+    { q:"Which is an example of MALWARE?", options:["A printer driver","A virus that damages files","A web browser","A spreadsheet"], answer:1, explain:"Malware includes viruses, worms, trojans, ransomware, spyware and other harmful software." },
+    { q:"PHISHING is BEST described as&hellip;", options:["A virus that deletes files","An attempt to trick users into revealing sensitive information","A type of firewall","A backup technique"], answer:1, explain:"Phishing uses fake messages (often email) to manipulate users into giving up data." },
+    { q:"A BRUTE FORCE attack&hellip;", options:["Tries every combination until it finds the password","Encrypts a hard drive","Disables Wi-Fi","Updates software"], answer:0, explain:"Brute force attacks try many possible passwords or keys until one works." },
+    { q:"A DENIAL-OF-SERVICE (DoS) attack&hellip;", options:["Steals data silently","Overwhelms a system so legitimate users cannot use it","Installs an OS","Encrypts files for ransom"], answer:1, explain:"DoS floods a service with traffic to make it unavailable to legitimate users." },
+    { q:"SQL INJECTION exploits&hellip;", options:["A printer queue","Unfiltered input into database queries","Wireless signals","CPU registers"], answer:1, explain:"SQL injection inserts malicious SQL into input fields to manipulate database queries." },
+    { q:"Social engineering relies on&hellip;", options:["Hardware failures only","Manipulating people into giving up information or access","Encryption strength","Network cables"], answer:1, explain:"Social engineering exploits human trust and psychology, not just technical flaws." },
+    { q:"A FIREWALL primarily&hellip;", options:["Cools the CPU","Filters network traffic based on rules","Manages files","Encrypts hard drives"], answer:1, explain:"Firewalls control inbound and outbound traffic based on configured rules." },
+    { q:"ENCRYPTION protects data by&hellip;", options:["Making files unreadable without the key","Compressing the file","Making files public","Deleting the file"], answer:0, explain:"Encryption transforms data into ciphertext that can only be read with the correct key." },
+    { q:"USER ACCESS LEVELS&hellip;", options:["Restrict what each user can see or do based on their role","Encrypt the network cables","Replace passwords","Test the CPU"], answer:0, explain:"Access levels limit users to what they need for their role (principle of least privilege)." },
+    { q:"A STRONG password typically&hellip;", options:["Is short and easy to remember","Uses a long mix of letters, numbers and symbols","Is shared with friends","Uses your name"], answer:1, explain:"Strong passwords are long, mix character types and avoid easily guessed words." },
+    { q:"PENETRATION TESTING involves&hellip;", options:["Authorised simulated attacks to find vulnerabilities","Disabling user accounts","Installing the OS","Deleting cookies"], answer:0, explain:"Pen testing is authorised ethical attacking of systems to discover weaknesses before bad actors do." },
+    { q:"Which is a form of PHYSICAL security?", options:["Anti-virus software","Locked server rooms and CCTV","HTTPS","SQL queries"], answer:1, explain:"Physical security includes locks, CCTV, security guards, biometric access and similar measures." }
+  ],
+  T15: [
+    { q:"An operating system is responsible for&hellip;", options:["Editing photos","Managing hardware and providing services to applications","Generating Wi-Fi only","Creating documents"], answer:1, explain:"The OS manages CPU, memory, storage, peripherals and provides a platform for applications." },
+    { q:"MEMORY MANAGEMENT by the OS includes&hellip;", options:["Recycling old monitors","Allocating and freeing memory for processes","Printing documents","Designing UIs"], answer:1, explain:"The OS allocates RAM to processes and reclaims it when no longer needed." },
+    { q:"A GRAPHICAL user interface (GUI)&hellip;", options:["Uses only text commands","Uses windows, icons and pointers","Cannot use a mouse","Is a kind of hardware"], answer:1, explain:"GUIs use visual elements (windows, icons, menus, pointer) to interact with the OS." },
+    { q:"MULTITASKING by an OS means&hellip;", options:["Only running one program at a time","Allowing multiple processes to share the CPU concurrently","Replacing the CPU","Disabling drivers"], answer:1, explain:"The OS switches between processes quickly so multiple programs appear to run simultaneously." },
+    { q:"FILE MANAGEMENT by the OS includes&hellip;", options:["Creating, reading, writing and organising files and folders","Editing video","Designing webpages","Compiling code"], answer:0, explain:"The file system handles storage and retrieval, naming, permissions and folder structure." },
+    { q:"USER MANAGEMENT by the OS includes&hellip;", options:["Setting up accounts and access permissions","Editing photos","Painting walls","Designing chips"], answer:0, explain:"The OS manages accounts, login, groups and per-user permissions." },
+    { q:"A DEVICE DRIVER is&hellip;", options:["A type of monitor","Software that lets the OS communicate with a specific hardware device","A network protocol","A hardware connector"], answer:1, explain:"Drivers translate OS calls into commands that specific hardware understands." },
+    { q:"DEFRAGMENTATION (utility software) is mainly used on&hellip;", options:["SSDs","Magnetic hard drives","Optical discs","RAM"], answer:1, explain:"Defragmentation rearranges files on HDDs to improve access; it's generally NOT done on SSDs." },
+    { q:"BACKUP utility software&hellip;", options:["Creates a copy of data that can be restored if originals are lost","Deletes old files","Compresses the CPU","Encrypts cables"], answer:0, explain:"Backups protect against data loss by keeping copies that can be restored." },
+    { q:"COMPRESSION utility software typically&hellip;", options:["Reduces file size for storage or transfer","Increases CPU clock speed","Adds malware","Builds GUIs"], answer:0, explain:"Compression tools shrink file sizes (e.g., ZIP) for storage or faster transfer." },
+    { q:"Which is an example of APPLICATION software?", options:["An operating system","A word processor","A device driver","A bootloader"], answer:1, explain:"Application software performs tasks for the user (word processors, browsers); the OS and utilities are system software." },
+    { q:"Which is an example of SYSTEM software?", options:["A video game","A spreadsheet","A device driver","A music player"], answer:2, explain:"System software supports the computer itself — OS, drivers and utilities — rather than user tasks." }
+  ],
+  T16: [
+    { q:"The Data Protection Act 2018&hellip;", options:["Governs how personal data is collected, stored and used in the UK","Protects software copyright","Limits internet access by age","Sets CPU clock speeds"], answer:0, explain:"The DPA 2018 (with UK GDPR) governs lawful and fair handling of personal data." },
+    { q:"The Computer Misuse Act 1990 makes which of these illegal?", options:["Buying a computer","Unauthorised access to computer material","Selling software","Owning a domain"], answer:1, explain:"The CMA criminalises unauthorised access to and modification of computer material." },
+    { q:"The Copyright, Designs and Patents Act 1988 protects&hellip;", options:["Personal data","Original creative works","Hardware only","Wi-Fi signals"], answer:1, explain:"The CDPA 1988 protects original works such as text, images, music and software." },
+    { q:"The Freedom of Information Act 2000 gives&hellip;", options:["A right to access information held by public authorities","Free internet to all","Free software licences","The right to change someone's data"], answer:0, explain:"The FoI Act gives a right of access to information held by UK public bodies (subject to exemptions)." },
+    { q:"The DIGITAL DIVIDE refers to&hellip;", options:["A type of CPU","The gap between those with and without access to digital technology","An OS update","A network cable"], answer:1, explain:"The digital divide describes inequality in access to and skills with technology." },
+    { q:"E-WASTE is an environmental concern because&hellip;", options:["Discarded electronics contain toxic materials and use rare resources","Computers are recyclable as paper","It improves air quality","Devices last forever"], answer:0, explain:"E-waste contains heavy metals and rare earths; poor disposal harms environments and workers." },
+    { q:"Which is an ethical concern about AI in society?", options:["Bias in decisions, accountability and impact on jobs","All machines must be green","Hardware getting cheaper","Faster CPUs only"], answer:0, explain:"Ethical concerns include algorithmic bias, transparency, accountability and economic disruption." },
+    { q:"PRIVACY concerns about online services typically include&hellip;", options:["How personal data is collected, shared and used","CPU clock speed","Number of pixels on screen","Cable colour"], answer:0, explain:"Online privacy concerns centre on data collection, profiling and onward sharing." },
+    { q:"An ETHICAL benefit of OPEN SOURCE software is&hellip;", options:["It costs more","Users can read, modify and share the source code","It cannot be audited","Only experts may use it"], answer:1, explain:"Open source allows scrutiny, modification and sharing, supporting transparency and collaboration." },
+    { q:"Which is a CULTURAL impact of digital technology?", options:["Changes in how people communicate, consume media and form communities","Changes to atomic weight","Faster cars","Cooler weather"], answer:0, explain:"Digital tech reshapes communication norms, entertainment, community formation and identity." },
+    { q:"Reducing the ENERGY consumption of data centres helps with&hellip;", options:["The environmental impact of computing","The DPA 2018","CPU clock speed","The CDPA 1988"], answer:0, explain:"Data centres use significant electricity; efficiency reduces carbon footprint and operating cost." },
+    { q:"Reducing CYBERBULLYING is mainly a&hellip;", options:["Hardware design problem","Social, ethical and educational challenge","Compiler issue","Network protocol issue"], answer:1, explain:"While platforms can help technically, addressing cyberbullying is largely social and educational." }
+  ]
+};
+
+const CS_QUIZ_SUBS = {
+  T11: ["T11.1","T11.1","T11.1","T11.1","T11.2","T11.2","T11.2","T11.1","T11.1","T11.3","T11.3","T11.1"],
+  T12: ["T12.1","T12.1","T12.1","T12.2","T12.2","T12.2","T12.3","T12.3","T12.4","T12.4","T12.4","T12.2"],
+  T13: ["T13.1","T13.1","T13.1","T13.1","T13.2","T13.2","T13.2","T13.2","T13.2","T13.1","T13.1","T13.2"],
+  T14: ["T14.1","T14.1","T14.1","T14.1","T14.1","T14.1","T14.2","T14.2","T14.2","T14.2","T14.2","T14.2"],
+  T15: ["T15.1","T15.1","T15.1","T15.1","T15.1","T15.1","T15.1","T15.2","T15.2","T15.2","T15.1","T15.1"],
+  T16: ["T16.2","T16.2","T16.2","T16.2","T16.1","T16.1","T16.1","T16.3","T16.1","T16.1","T16.1","T16.1"]
+};
+
+/* CS match-the-keyword (6 pairs per topic) */
+const CS_MATCHUPS = {
+  T11: [
+    { term:"CPU", def:"Central Processing Unit — executes instructions." },
+    { term:"ALU", def:"Arithmetic Logic Unit — performs maths and logic." },
+    { term:"Cache", def:"Very fast memory close to the CPU." },
+    { term:"Program Counter (PC)", def:"Holds the address of the next instruction." },
+    { term:"FDE cycle", def:"Fetch, Decode, Execute." },
+    { term:"Core", def:"Independent processing unit within a CPU." }
+  ],
+  T12: [
+    { term:"RAM", def:"Volatile working memory used by running programs." },
+    { term:"ROM", def:"Non-volatile memory often holding boot firmware." },
+    { term:"SSD", def:"Flash-based secondary storage with no moving parts." },
+    { term:"Virtual memory", def:"Uses secondary storage as extra RAM when needed." },
+    { term:"Lossless compression", def:"Preserves all original data when reduced." },
+    { term:"Lossy compression", def:"Discards some data to reduce file size." }
+  ],
+  T13: [
+    { term:"LAN", def:"Network covering a small area such as one building." },
+    { term:"WAN", def:"Network covering a large geographical area." },
+    { term:"TCP/IP", def:"The protocol suite that underpins the internet." },
+    { term:"HTTPS", def:"HTTP secured with TLS/SSL encryption." },
+    { term:"DNS", def:"Translates domain names to IP addresses." },
+    { term:"Router", def:"Forwards packets between different networks." }
+  ],
+  T14: [
+    { term:"Phishing", def:"Tricking users into revealing sensitive information." },
+    { term:"SQL injection", def:"Inserting malicious SQL into unfiltered inputs." },
+    { term:"Brute force", def:"Trying every possible combination until access succeeds." },
+    { term:"Firewall", def:"Filters incoming and outgoing network traffic by rules." },
+    { term:"Encryption", def:"Scrambles data so only key holders can read it." },
+    { term:"Penetration testing", def:"Authorised simulated attacks to expose weaknesses." }
+  ],
+  T15: [
+    { term:"Operating system", def:"Manages hardware and provides services to applications." },
+    { term:"GUI", def:"Visual interface using windows, icons and a pointer." },
+    { term:"Device driver", def:"Lets the OS communicate with a specific hardware device." },
+    { term:"Defragmentation", def:"Reorganises files on a magnetic HDD for faster access." },
+    { term:"Backup utility", def:"Creates copies of data that can be restored later." },
+    { term:"Multitasking", def:"Allowing multiple processes to share the CPU concurrently." }
+  ],
+  T16: [
+    { term:"Data Protection Act 2018", def:"Governs how personal data is handled in the UK." },
+    { term:"Computer Misuse Act 1990", def:"Makes unauthorised access to computers illegal." },
+    { term:"CDPA 1988", def:"Protects original creative works including software." },
+    { term:"FoIA 2000", def:"Right to access information held by public authorities." },
+    { term:"Digital divide", def:"Inequality of access to digital technology." },
+    { term:"E-waste", def:"Discarded electronic equipment." }
+  ]
+};
+const CS_MATCH_SUBS = {
+  T11: ["T11.1","T11.1","T11.2","T11.1","T11.1","T11.2"],
+  T12: ["T12.1","T12.1","T12.2","T12.1","T12.4","T12.4"],
+  T13: ["T13.1","T13.1","T13.2","T13.2","T13.2","T13.1"],
+  T14: ["T14.1","T14.1","T14.1","T14.2","T14.2","T14.2"],
+  T15: ["T15.1","T15.1","T15.1","T15.2","T15.2","T15.1"],
+  T16: ["T16.2","T16.2","T16.2","T16.2","T16.1","T16.1"]
+};
+
+/* CS fill-in-the-blanks (6 per topic) */
+const CS_BLANKS = {
+  T11: [
+    { text:"The ___ holds the address of the next instruction.", options:["PC","MAR","MDR","ALU"], answer:0 },
+    { text:"The ___ performs arithmetic and logic operations.", options:["PC","ALU","CU","ROM"], answer:1 },
+    { text:"___ is fast memory close to the CPU.", options:["Cache","ROM","HDD","SSD"], answer:0 },
+    { text:"___ stands for Fetch-Decode-Execute.", options:["FDE","ALU","MDR","CMA"], answer:0 },
+    { text:"A ___ is an independent processing unit within a CPU.", options:["register","core","bus","port"], answer:1 },
+    { text:"An ___ system is dedicated to a specific task.", options:["embedded","optical","encrypted","virtual"], answer:0 }
+  ],
+  T12: [
+    { text:"___ is volatile working memory.", options:["ROM","RAM","HDD","SSD"], answer:1 },
+    { text:"___ is non-volatile and often holds firmware.", options:["RAM","ROM","SSD","Cache"], answer:1 },
+    { text:"An ___ uses flash memory and is faster than an HDD.", options:["HDD","SSD","DVD","optical disc"], answer:1 },
+    { text:"___ memory uses secondary storage when RAM is full.", options:["Virtual","ROM","Cache","Buffer"], answer:0 },
+    { text:"___ compression discards some data to save space.", options:["Lossless","Lossy","ZIP","Raw"], answer:1 },
+    { text:"One byte is ___ bits.", options:["4","8","16","1024"], answer:1 }
+  ],
+  T13: [
+    { text:"A ___ is a network in a single building or small area.", options:["WAN","LAN","MAN","PAN"], answer:1 },
+    { text:"___ is the protocol suite of the internet.", options:["HTTP","FTP","TCP/IP","DNS"], answer:2 },
+    { text:"___ adds encryption on top of HTTP.", options:["HTTPS","SMTP","FTP","ARP"], answer:0 },
+    { text:"___ sends email between servers.", options:["POP","IMAP","SMTP","HTTP"], answer:2 },
+    { text:"___ translates domain names to IP addresses.", options:["DNS","DHCP","ARP","NAT"], answer:0 },
+    { text:"A ___ routes packets between different networks.", options:["switch","router","hub","modem"], answer:1 }
+  ],
+  T14: [
+    { text:"___ tricks users into revealing information.", options:["Phishing","Spamming","Logging","Backups"], answer:0 },
+    { text:"A ___ attack tries every combination to crack a password.", options:["brute force","DoS","phishing","backup"], answer:0 },
+    { text:"SQL ___ inserts malicious code into database queries.", options:["filtering","injection","encryption","testing"], answer:1 },
+    { text:"A ___ filters network traffic by configured rules.", options:["firewall","router","modem","switch"], answer:0 },
+    { text:"___ scrambles data so only key holders can read it.", options:["Compression","Encryption","Caching","Routing"], answer:1 },
+    { text:"___ testing uses authorised simulated attacks.", options:["Stress","Unit","Penetration","Black-box"], answer:2 }
+  ],
+  T15: [
+    { text:"The ___ manages hardware and provides services to applications.", options:["OS","GUI","BIOS","DBMS"], answer:0 },
+    { text:"A device ___ lets the OS communicate with hardware.", options:["driver","utility","codec","kernel"], answer:0 },
+    { text:"___ runs many processes concurrently on one CPU.", options:["Multitasking","Defragmenting","Compressing","Backing up"], answer:0 },
+    { text:"___ rearranges fragmented files on an HDD.", options:["Encryption","Compression","Defragmentation","Backup"], answer:2 },
+    { text:"A ___ is a copy of data kept for recovery.", options:["backup","cache","driver","port"], answer:0 },
+    { text:"A ___ utility reduces file sizes for storage or transfer.", options:["backup","compression","encryption","defrag"], answer:1 }
+  ],
+  T16: [
+    { text:"The ___ Act 2018 governs personal data in the UK.", options:["Data Protection","Computer Misuse","Copyright, Designs and Patents","Freedom of Information"], answer:0 },
+    { text:"The ___ Act 1990 criminalises unauthorised access.", options:["Data Protection","Computer Misuse","Copyright, Designs and Patents","Freedom of Information"], answer:1 },
+    { text:"The ___ Act 1988 protects original creative works.", options:["Data Protection","Computer Misuse","Copyright, Designs and Patents","Freedom of Information"], answer:2 },
+    { text:"The digital ___ is unequal access to technology.", options:["highway","divide","library","commons"], answer:1 },
+    { text:"___ is discarded electronic equipment.", options:["Backup","Cache","E-waste","Software"], answer:2 },
+    { text:"___ source software has publicly available code.", options:["Closed","Proprietary","Open","Encrypted"], answer:2 }
+  ]
+};
+const CS_BLANK_SUBS = {
+  T11: ["T11.1","T11.1","T11.1","T11.1","T11.2","T11.3"],
+  T12: ["T12.1","T12.1","T12.2","T12.1","T12.4","T12.3"],
+  T13: ["T13.1","T13.2","T13.2","T13.2","T13.2","T13.1"],
+  T14: ["T14.1","T14.1","T14.1","T14.2","T14.2","T14.2"],
+  T15: ["T15.1","T15.1","T15.1","T15.2","T15.2","T15.2"],
+  T16: ["T16.2","T16.2","T16.2","T16.1","T16.1","T16.1"]
+};
+
+/* CS exam-style written questions */
+const CS_WRITTEN = [
+  { id:"CSW1", topic:"T11", marks:2, q:"State TWO main components of a CPU." },
+  { id:"CSW2", topic:"T11", marks:4, q:"Describe the three stages of the Fetch-Decode-Execute cycle." },
+  { id:"CSW3", topic:"T12", marks:4, q:"Compare HDD and SSD secondary storage in terms of speed, cost and durability." },
+  { id:"CSW4", topic:"T13", marks:4, q:"Explain TWO benefits to a small business of connecting its computers in a Local Area Network." },
+  { id:"CSW5", topic:"T14", marks:4, q:"Describe TWO common threats to network security and how an organisation could reduce the risk of each." },
+  { id:"CSW6", topic:"T15", marks:4, q:"Explain the role of an operating system in managing memory and peripherals." },
+  { id:"CSW7", topic:"T16", marks:4, q:"Discuss TWO ethical issues that arise from the widespread use of digital technology." },
+  { id:"CSW8", topic:"T16", marks:6, q:"Discuss the environmental impact of digital technology and steps that could reduce it." }
+];
+const CS_WRITTEN_SUBS = { CSW1:"T11.1", CSW2:"T11.1", CSW3:"T12.2", CSW4:"T13.1", CSW5:"T14.1", CSW6:"T15.1", CSW7:"T16.1", CSW8:"T16.1" };
+
+/* CS flashcards (5 per topic = 30) */
+const CS_FLASHCARDS = [
+  { topic:"T11", term:"CPU", def:"Central Processing Unit — executes instructions." },
+  { topic:"T11", term:"ALU", def:"Arithmetic Logic Unit — performs maths and logic." },
+  { topic:"T11", term:"Cache", def:"Fast memory close to the CPU to speed up access." },
+  { topic:"T11", term:"FDE cycle", def:"Fetch, Decode, Execute." },
+  { topic:"T11", term:"Embedded system", def:"Computer dedicated to a specific task." },
+  { topic:"T12", term:"RAM", def:"Volatile working memory used while programs run." },
+  { topic:"T12", term:"ROM", def:"Non-volatile memory often holding firmware." },
+  { topic:"T12", term:"SSD", def:"Flash-based secondary storage." },
+  { topic:"T12", term:"Virtual memory", def:"Uses storage as extension of RAM." },
+  { topic:"T12", term:"Lossy compression", def:"Reduces file size by discarding data." },
+  { topic:"T13", term:"LAN", def:"Network in a small area such as one building." },
+  { topic:"T13", term:"WAN", def:"Network covering a large geographical area." },
+  { topic:"T13", term:"HTTP", def:"Protocol for transferring web pages." },
+  { topic:"T13", term:"HTTPS", def:"HTTP with TLS encryption." },
+  { topic:"T13", term:"DNS", def:"Translates domain names to IP addresses." },
+  { topic:"T14", term:"Phishing", def:"Tricking users into revealing information." },
+  { topic:"T14", term:"Brute force", def:"Trying every combination to break in." },
+  { topic:"T14", term:"Firewall", def:"Filters network traffic by rules." },
+  { topic:"T14", term:"Encryption", def:"Scrambles data so only key holders can read." },
+  { topic:"T14", term:"Penetration testing", def:"Authorised simulated attacks to expose weaknesses." },
+  { topic:"T15", term:"Operating system", def:"Manages hardware and provides services." },
+  { topic:"T15", term:"GUI", def:"Graphical user interface — windows, icons, pointer." },
+  { topic:"T15", term:"Device driver", def:"Lets OS communicate with specific hardware." },
+  { topic:"T15", term:"Defragmentation", def:"Reorganises files on a HDD." },
+  { topic:"T15", term:"Backup utility", def:"Creates copies of data for recovery." },
+  { topic:"T16", term:"Data Protection Act 2018", def:"Governs personal data in the UK." },
+  { topic:"T16", term:"Computer Misuse Act 1990", def:"Outlaws unauthorised access." },
+  { topic:"T16", term:"CDPA 1988", def:"Protects original creative works." },
+  { topic:"T16", term:"Digital divide", def:"Unequal access to technology." },
+  { topic:"T16", term:"E-waste", def:"Discarded electronic equipment." }
+];
+const CS_FLASH_SUB_BY_TERM = {
+  "CPU":"T11.1","ALU":"T11.1","Cache":"T11.2","FDE cycle":"T11.1","Embedded system":"T11.3",
+  "RAM":"T12.1","ROM":"T12.1","SSD":"T12.2","Virtual memory":"T12.1","Lossy compression":"T12.4",
+  "LAN":"T13.1","WAN":"T13.1","HTTP":"T13.2","HTTPS":"T13.2","DNS":"T13.2",
+  "Phishing":"T14.1","Brute force":"T14.1","Firewall":"T14.2","Encryption":"T14.2","Penetration testing":"T14.2",
+  "Operating system":"T15.1","GUI":"T15.1","Device driver":"T15.1","Defragmentation":"T15.2","Backup utility":"T15.2",
+  "Data Protection Act 2018":"T16.2","Computer Misuse Act 1990":"T16.2","CDPA 1988":"T16.2","Digital divide":"T16.1","E-waste":"T16.1"
+};
+
+/* CS knowledge organisers (one per topic) */
+const CS_KO_DATA = {
+  T11: {
+    title: "Topic 1.1 — Systems architecture",
+    subtitle: "OCR GCSE Computer Science (J277) · Paper 1",
+    boxes: [
+      { title:"The CPU and its components", colour:"primary",
+        defs:[
+          { term:"CPU", def:"Central Processing Unit — executes instructions." },
+          { term:"ALU", def:"Arithmetic Logic Unit — performs maths and logic." },
+          { term:"CU", def:"Control Unit — coordinates the activities of the CPU." },
+          { term:"Cache", def:"Fast memory close to the CPU." },
+          { term:"Registers", def:"Tiny ultra-fast storage inside the CPU (PC, MAR, MDR, ACC)." }
+        ]
+      },
+      { title:"FDE cycle", colour:"purple",
+        list:[
+          "Fetch — load the next instruction from main memory.",
+          "Decode — interpret what the instruction means.",
+          "Execute — carry out the instruction (use ALU if needed).",
+          "Repeat — increment the PC and loop."
+        ]
+      },
+      { title:"Factors affecting performance", colour:"green",
+        list:[
+          "Clock speed (Hz) — cycles per second.",
+          "Number of cores — parallel processing capacity.",
+          "Cache size — more cache = fewer slow RAM accesses.",
+          "Architecture — Von Neumann (shared memory) vs Harvard (split)."
+        ]
+      },
+      { title:"Embedded systems", colour:"amber",
+        list:[
+          "Dedicated to a specific task with limited resources.",
+          "Examples: washing machine controller, smart meter, in-car ECU, microwave.",
+          "Often run firmware with little or no GUI.",
+          "Low power, often real-time."
+        ]
+      }
+    ]
+  },
+  T12: {
+    title: "Topic 1.2 — Memory and storage",
+    subtitle: "OCR GCSE Computer Science (J277) · Paper 1",
+    boxes: [
+      { title:"Primary storage", colour:"primary",
+        defs:[
+          { term:"RAM", def:"Volatile working memory; lost when power is off." },
+          { term:"ROM", def:"Non-volatile; often holds boot/firmware code." },
+          { term:"Virtual memory", def:"Uses secondary storage to extend RAM when full." }
+        ]
+      },
+      { title:"Secondary storage", colour:"purple",
+        defs:[
+          { term:"HDD", def:"Magnetic spinning platters; cheaper per GB, slower." },
+          { term:"SSD", def:"Flash memory; faster, more durable, more expensive per GB." },
+          { term:"Optical", def:"CDs, DVDs, Blu-ray — read pits with a laser." },
+          { term:"Magnetic tape", def:"Cheap high-capacity media often used for backup." }
+        ]
+      },
+      { title:"Units and binary", colour:"green",
+        list:[
+          "1 byte = 8 bits.",
+          "1 KB ≈ 1000 bytes; 1 MB ≈ 1000 KB; 1 GB ≈ 1000 MB; 1 TB ≈ 1000 GB.",
+          "Hexadecimal: base 16 — one hex digit represents 4 bits.",
+          "Binary: base 2 — used internally by all digital systems."
+        ]
+      },
+      { title:"Compression", colour:"amber",
+        defs:[
+          { term:"Lossless", def:"No data lost (e.g. PNG, FLAC, ZIP)." },
+          { term:"Lossy", def:"Some data discarded (e.g. JPG, MP3)." }
+        ]
+      }
+    ]
+  },
+  T13: {
+    title: "Topic 1.3 — Networks, connections and protocols",
+    subtitle: "OCR GCSE Computer Science (J277) · Paper 1",
+    boxes: [
+      { title:"Networks and topologies", colour:"primary",
+        defs:[
+          { term:"LAN", def:"Local Area Network — one site." },
+          { term:"WAN", def:"Wide Area Network — large area, often via third-party links." },
+          { term:"Star topology", def:"All devices connect to a central switch/hub." },
+          { term:"Mesh topology", def:"Multiple paths between nodes for resilience." }
+        ]
+      },
+      { title:"Common protocols", colour:"purple",
+        defs:[
+          { term:"TCP/IP", def:"Internet protocol suite." },
+          { term:"HTTP / HTTPS", def:"Web page transfer (HTTPS adds encryption)." },
+          { term:"SMTP", def:"Sends email." },
+          { term:"POP3 / IMAP", def:"Retrieves email." },
+          { term:"FTP", def:"Transfers files." },
+          { term:"DNS", def:"Domain name to IP address translation." }
+        ]
+      },
+      { title:"Network hardware", colour:"green",
+        list:[
+          "NIC — Network Interface Card (wired or wireless).",
+          "Switch — forwards traffic on a LAN by MAC address.",
+          "Router — forwards packets between networks by IP address.",
+          "Access point — bridges wireless devices to a wired LAN."
+        ]
+      },
+      { title:"Layers", colour:"amber",
+        list:[
+          "Layers split protocols into manageable groups (e.g. application, transport, network, link).",
+          "Each layer only needs to talk to the layer above and below.",
+          "Makes protocols easier to design, change and troubleshoot."
+        ]
+      }
+    ]
+  },
+  T14: {
+    title: "Topic 1.4 — Network security",
+    subtitle: "OCR GCSE Computer Science (J277) · Paper 1",
+    boxes: [
+      { title:"Threats", colour:"primary",
+        defs:[
+          { term:"Malware", def:"Viruses, worms, trojans, ransomware, spyware." },
+          { term:"Phishing", def:"Tricking users into revealing data via fake messages." },
+          { term:"Brute force", def:"Trying every possible password or key." },
+          { term:"DoS", def:"Flooding a service so it can't respond to legitimate users." },
+          { term:"SQL injection", def:"Inserting malicious SQL into vulnerable inputs." },
+          { term:"Social engineering", def:"Manipulating people into giving up access." }
+        ]
+      },
+      { title:"Technical prevention", colour:"purple",
+        list:[
+          "Firewalls — filter traffic by rules.",
+          "Anti-malware — detects and removes threats.",
+          "Encryption — protects data in transit and at rest.",
+          "Patching — keeps software up to date."
+        ]
+      },
+      { title:"People and process", colour:"green",
+        list:[
+          "Strong, unique passwords and multi-factor authentication.",
+          "User access levels (principle of least privilege).",
+          "Staff training to spot phishing and social engineering.",
+          "Penetration testing to find weaknesses before attackers do."
+        ]
+      },
+      { title:"Physical security", colour:"amber",
+        list:[
+          "Locked server rooms.",
+          "CCTV, alarms, security guards.",
+          "Biometric or card-based access control.",
+          "Cable locks and tamper-evident hardware."
+        ]
+      }
+    ]
+  },
+  T15: {
+    title: "Topic 1.5 — Systems software",
+    subtitle: "OCR GCSE Computer Science (J277) · Paper 1",
+    boxes: [
+      { title:"What the OS does", colour:"primary",
+        list:[
+          "Manages memory (allocates RAM to processes).",
+          "Manages the CPU (scheduling, multitasking).",
+          "Manages peripherals via device drivers.",
+          "Manages users and access permissions.",
+          "Provides a file system.",
+          "Provides a user interface."
+        ]
+      },
+      { title:"User interfaces", colour:"purple",
+        defs:[
+          { term:"GUI", def:"Graphical — windows, icons, pointer." },
+          { term:"CLI", def:"Command-line — typed commands." },
+          { term:"Menu-driven", def:"Choose from a list (e.g. cashpoint)." },
+          { term:"Voice", def:"Spoken commands and responses." }
+        ]
+      },
+      { title:"Utility software", colour:"green",
+        defs:[
+          { term:"Encryption", def:"Scrambles files so only the key holder can read." },
+          { term:"Defragmentation", def:"Rearranges files on an HDD." },
+          { term:"Compression", def:"Reduces file sizes." },
+          { term:"Backup", def:"Creates restorable copies of data." },
+          { term:"Anti-malware", def:"Finds and removes harmful software." }
+        ]
+      },
+      { title:"System vs application software", colour:"amber",
+        list:[
+          "System software runs and maintains the computer (OS, drivers, utilities).",
+          "Application software does tasks for the user (word processor, browser, game).",
+          "Some software sits between (e.g. database engines, web servers)."
+        ]
+      }
+    ]
+  },
+  T16: {
+    title: "Topic 1.6 — Ethical, legal, cultural and environmental impacts",
+    subtitle: "OCR GCSE Computer Science (J277) · Paper 1",
+    boxes: [
+      { title:"UK legislation", colour:"primary",
+        defs:[
+          { term:"Data Protection Act 2018", def:"Governs how personal data is collected, stored and used." },
+          { term:"Computer Misuse Act 1990", def:"Outlaws unauthorised access and modification." },
+          { term:"Copyright, Designs and Patents Act 1988", def:"Protects original creative works including software." },
+          { term:"Freedom of Information Act 2000", def:"Right to access information from public authorities." }
+        ]
+      },
+      { title:"Ethical issues", colour:"purple",
+        list:[
+          "Bias in algorithms and AI decisions.",
+          "Automation and job displacement.",
+          "Responsibility and accountability for software actions.",
+          "Online behaviour: cyberbullying, harassment, misinformation."
+        ]
+      },
+      { title:"Cultural & social", colour:"green",
+        list:[
+          "Changes in communication, work and education.",
+          "Digital divide — unequal access between groups and countries.",
+          "Impact on minority languages and cultures.",
+          "Erosion of attention and reliance on devices."
+        ]
+      },
+      { title:"Environmental & privacy", colour:"amber",
+        list:[
+          "Energy use of data centres and devices.",
+          "E-waste from short device life cycles.",
+          "Rare-earth mining for components.",
+          "Privacy: data collection, surveillance, profiling."
+        ]
+      }
+    ]
+  }
+};
+
+/* CS mock papers (4 papers × 15 questions each) — original exam-style content */
+const CS_MOCK1 = [
+  { topic:"T11", q:"Which CPU component performs arithmetic and logic operations?", options:["CU","ALU","PC","Cache"], answer:1 },
+  { topic:"T11", q:"What does the Program Counter hold?", options:["The last result","The address of the next instruction","The cache size","The clock speed"], answer:1 },
+  { topic:"T12", q:"Which memory is volatile?", options:["ROM","RAM","Flash storage","Optical disc"], answer:1 },
+  { topic:"T12", q:"Which is generally fastest for typical access?", options:["HDD","Magnetic tape","SSD","Optical disc"], answer:2 },
+  { topic:"T13", q:"Which protocol sends email between servers?", options:["HTTP","SMTP","DNS","FTP"], answer:1 },
+  { topic:"T13", q:"A WAN typically covers&hellip;", options:["A single room","A large geographical area","Only one device","A single hard drive"], answer:1 },
+  { topic:"T14", q:"Phishing is a type of&hellip;", options:["Hardware fault","Social engineering attack","Power supply","Storage device"], answer:1 },
+  { topic:"T14", q:"A firewall mainly&hellip;", options:["Filters network traffic","Backs up files","Plays audio","Compresses video"], answer:0 },
+  { topic:"T15", q:"Which is NOT typically a role of the OS?", options:["Memory management","File management","Writing application code","User management"], answer:2 },
+  { topic:"T15", q:"Defragmentation utility software is mainly used on&hellip;", options:["SSDs","Magnetic HDDs","RAM","Optical discs"], answer:1 },
+  { topic:"T16", q:"The Data Protection Act 2018 governs&hellip;", options:["Computer hardware","Personal data","Software copyright","Internet speeds"], answer:1 },
+  { topic:"T16", q:"E-waste is mainly an issue because&hellip;", options:["Devices last forever","Discarded electronics contain toxic and rare materials","All electronics decompose quickly","All e-waste is reused"], answer:1 },
+  { topic:"T11", q:"More CPU cores allow&hellip;", options:["Slower execution","Parallel execution of tasks","Lower clock speed always","Less RAM"], answer:1 },
+  { topic:"T12", q:"Lossless compression&hellip;", options:["Removes some data","Keeps all original data","Increases file size","Is only used for video"], answer:1 },
+  { topic:"T13", q:"DNS is used to&hellip;", options:["Encrypt traffic","Translate domain names to IP addresses","Send email","Format hard drives"], answer:1 }
+];
+
+const CS_MOCK2 = [
+  { topic:"T11", q:"What does FDE stand for?", options:["Fetch-Decode-Execute","File-Data-Encrypt","Fast-Direct-Edit","Final-Decode-End"], answer:0 },
+  { topic:"T11", q:"An embedded system is typically&hellip;", options:["A general-purpose PC","Dedicated to a specific task","Always wireless","Only used in cars"], answer:1 },
+  { topic:"T12", q:"Which holds boot/firmware instructions?", options:["RAM","ROM","Virtual memory","Cache"], answer:1 },
+  { topic:"T12", q:"1 byte equals how many bits?", options:["1","4","8","16"], answer:2 },
+  { topic:"T13", q:"In a STAR topology, devices connect&hellip;", options:["To each other directly","Through a central switch or hub","In a closed ring","In a chain"], answer:1 },
+  { topic:"T13", q:"HTTPS adds&hellip; compared to HTTP.", options:["Speed","Encryption via TLS","Image support","Cookies"], answer:1 },
+  { topic:"T14", q:"SQL injection targets&hellip;", options:["Network cables","Unfiltered inputs to a database","CPU registers","Optical drives"], answer:1 },
+  { topic:"T14", q:"A DoS attack&hellip;", options:["Steals data silently","Overwhelms a service to make it unavailable","Installs the OS","Backs up files"], answer:1 },
+  { topic:"T15", q:"A GUI uses&hellip;", options:["Only text commands","Windows, icons and a pointer","Voice only","No display"], answer:1 },
+  { topic:"T15", q:"A device driver lets the OS&hellip;", options:["Boot faster","Communicate with specific hardware","Encrypt files","Browse the web"], answer:1 },
+  { topic:"T16", q:"The Computer Misuse Act 1990 outlaws&hellip;", options:["Selling software","Unauthorised access to computer material","Building computers","Encrypting files"], answer:1 },
+  { topic:"T16", q:"The CDPA 1988 protects&hellip;", options:["Personal data","Original creative works","Hardware only","Network cables"], answer:1 },
+  { topic:"T11", q:"Cache memory is used because it&hellip;", options:["Is cheap","Speeds up access to frequently used data","Is non-volatile","Holds the OS only"], answer:1 },
+  { topic:"T12", q:"Virtual memory uses&hellip;", options:["The CPU only","Part of secondary storage as extra RAM","Optical media","Network bandwidth"], answer:1 },
+  { topic:"T13", q:"A router&hellip;", options:["Connects two networks together","Replaces the OS","Compresses files","Stores backups"], answer:0 }
+];
+
+const CS_MOCK3 = [
+  { topic:"T11", q:"The Memory Address Register (MAR) holds&hellip;", options:["The data being transferred","The address of memory being read or written","The next instruction","The clock value"], answer:1 },
+  { topic:"T11", q:"Higher CPU clock speed generally&hellip;", options:["Reduces performance","Increases instructions per second","Eliminates RAM","Increases storage"], answer:1 },
+  { topic:"T12", q:"An SSD is typically&hellip; than an HDD.", options:["Slower","Faster","Heavier","Larger physically"], answer:1 },
+  { topic:"T12", q:"Lossy compression is BEST suited to&hellip;", options:["Source code","Photos and music where some quality loss is acceptable","Spreadsheets","Database records"], answer:1 },
+  { topic:"T13", q:"A LAN is a network covering&hellip;", options:["A single room","A small geographical area such as one building","Multiple countries","The whole internet"], answer:1 },
+  { topic:"T13", q:"Which protocol retrieves email and keeps copies on the server?", options:["POP3","IMAP","SMTP","FTP"], answer:1 },
+  { topic:"T14", q:"Anti-malware software&hellip;", options:["Speeds up the CPU","Detects and removes harmful software","Encrypts cables","Indexes web pages"], answer:1 },
+  { topic:"T14", q:"User access levels follow which principle?", options:["Maximum privilege","Least privilege","No privilege","Random privilege"], answer:1 },
+  { topic:"T15", q:"Backup utility software&hellip;", options:["Creates copies of data for recovery","Removes the OS","Compresses the CPU","Disables Wi-Fi"], answer:0 },
+  { topic:"T15", q:"Which is an example of APPLICATION software?", options:["A device driver","A word processor","A bootloader","An OS kernel"], answer:1 },
+  { topic:"T16", q:"The Freedom of Information Act 2000 gives a right to&hellip;", options:["Free internet","Access information from public authorities","Free software","Change someone else's data"], answer:1 },
+  { topic:"T16", q:"The digital divide refers to&hellip;", options:["Storage layout","Inequality of access to digital technology","Splitting binary","Network topology"], answer:1 },
+  { topic:"T11", q:"The Control Unit (CU)&hellip;", options:["Performs maths","Coordinates the activities of the CPU","Stores files","Designs websites"], answer:1 },
+  { topic:"T12", q:"Which is the largest unit?", options:["1 KB","1 MB","1 GB","1 TB"], answer:3 },
+  { topic:"T13", q:"A switch forwards traffic using&hellip;", options:["MAC addresses","Postcode","Phone numbers","File names"], answer:0 }
+];
+
+const CS_MOCK4 = [
+  { topic:"T14", q:"Penetration testing is BEST described as&hellip;", options:["Hacking without permission","Authorised simulated attacks","Encrypting cables","Backing up the OS"], answer:1 },
+  { topic:"T14", q:"A strong password is typically&hellip;", options:["Short and obvious","Long with a mix of character types","Your name","Shared with friends"], answer:1 },
+  { topic:"T11", q:"A core is a&hellip;", options:["Type of cable","Independent processing unit within a CPU","Storage device","Operating system"], answer:1 },
+  { topic:"T11", q:"Von Neumann architecture uses&hellip;", options:["Separate memories for data and instructions","One shared memory for data and instructions","No memory","Only optical storage"], answer:1 },
+  { topic:"T12", q:"ROM is&hellip;", options:["Volatile","Non-volatile","An OS only","A network device"], answer:1 },
+  { topic:"T12", q:"DVDs use which storage technology?", options:["Magnetic","Flash","Optical","Quantum"], answer:2 },
+  { topic:"T13", q:"TCP/IP is&hellip;", options:["A single protocol","A suite of protocols underpinning the internet","A type of cable","A storage format"], answer:1 },
+  { topic:"T13", q:"FTP is used to&hellip;", options:["Stream video","Transfer files between computers","Send email","Translate names to IPs"], answer:1 },
+  { topic:"T15", q:"Multitasking means the OS&hellip;", options:["Runs one program at a time","Allows multiple processes to share the CPU","Encrypts files","Cools the CPU"], answer:1 },
+  { topic:"T15", q:"Compression utility software&hellip;", options:["Reduces file sizes","Increases CPU clock","Builds GUIs","Routes packets"], answer:0 },
+  { topic:"T16", q:"AI in society raises which ethical concern?", options:["All AI is illegal","Bias, accountability and job impact","Devices last forever","Networks are free"], answer:1 },
+  { topic:"T16", q:"Open source software typically&hellip;", options:["Hides its code","Has publicly available code that can be modified","Cannot be used commercially","Is always slower"], answer:1 },
+  { topic:"T14", q:"Encryption protects data by&hellip;", options:["Compressing it","Making it unreadable without the key","Indexing it","Deleting it"], answer:1 },
+  { topic:"T15", q:"A CLI is&hellip;", options:["A graphical interface","A command-line interface","A network protocol","A backup device"], answer:1 },
+  { topic:"T11", q:"Cache is generally&hellip; than main RAM.", options:["Slower","Faster","Larger","Older"], answer:1 }
+];
+
+const CS_MOCKS_INDEX_DATA = { MOCK1: CS_MOCK1, MOCK2: CS_MOCK2, MOCK3: CS_MOCK3, MOCK4: CS_MOCK4 };
+
+const CS_MOCK_SUBS_DATA = {
+  MOCK1: ["T11.1","T11.1","T12.1","T12.2","T13.2","T13.1","T14.1","T14.2","T15.1","T15.2","T16.2","T16.1","T11.2","T12.4","T13.2"],
+  MOCK2: ["T11.1","T11.3","T12.1","T12.3","T13.1","T13.2","T14.1","T14.1","T15.1","T15.1","T16.2","T16.2","T11.2","T12.1","T13.1"],
+  MOCK3: ["T11.1","T11.2","T12.2","T12.4","T13.1","T13.2","T14.2","T14.2","T15.2","T15.2","T16.2","T16.1","T11.1","T12.3","T13.1"],
+  MOCK4: ["T14.2","T14.2","T11.2","T11.1","T12.1","T12.2","T13.2","T13.2","T15.1","T15.2","T16.1","T16.1","T14.2","T15.1","T11.2"]
+};
+
+const CS_MOCK_EXPLAIN_DATA = {
+  MOCK1: [
+    "The ALU (Arithmetic Logic Unit) handles arithmetic and logic operations.",
+    "The Program Counter stores the address of the next instruction.",
+    "RAM is volatile — contents are lost when power is removed.",
+    "SSDs use flash memory and have much faster typical access than HDDs.",
+    "SMTP (Simple Mail Transfer Protocol) is used to send email between servers.",
+    "WANs cover large geographical areas, often using third-party links.",
+    "Phishing manipulates users to give up information — it's social engineering.",
+    "Firewalls control traffic based on rules — what can pass in or out.",
+    "Writing application code is the developer's job, not the OS's responsibility.",
+    "Defragmentation reorganises files on a HDD; SSDs don't benefit from it.",
+    "The DPA 2018 (and UK GDPR) govern personal data in the UK.",
+    "E-waste contains toxic substances and rare-earth materials, making safe disposal an issue.",
+    "Multiple cores allow tasks to be processed in parallel.",
+    "Lossless compression can be fully decompressed to the original data.",
+    "DNS resolves human-readable names like example.com to IP addresses."
+  ],
+  MOCK2: [
+    "FDE = Fetch, Decode, Execute — the core CPU cycle.",
+    "Embedded systems are dedicated to a specific task with limited resources.",
+    "ROM is non-volatile, so it can hold firmware that survives a power cycle.",
+    "By convention, 1 byte = 8 bits.",
+    "In a star topology, every device connects to a central switch or hub.",
+    "HTTPS uses TLS/SSL to encrypt traffic, protecting data in transit.",
+    "SQL injection exploits unfiltered user input that becomes part of a SQL query.",
+    "DoS attacks overwhelm a target with traffic so legitimate users can't get through.",
+    "GUIs use windows, icons, menus and a pointer to interact with the OS.",
+    "Drivers translate generic OS calls into commands specific hardware understands.",
+    "The CMA criminalises unauthorised access to (and modification of) computer material.",
+    "The Copyright, Designs and Patents Act 1988 protects original creative work.",
+    "Cache holds frequently used data close to the CPU, avoiding slower RAM accesses.",
+    "Virtual memory uses secondary storage to extend RAM when needed.",
+    "Routers forward IP packets between separate networks."
+  ],
+  MOCK3: [
+    "The MAR holds the address of the memory location being accessed.",
+    "Higher clock speed means more cycles per second (within thermal limits).",
+    "SSDs are generally faster than HDDs because they have no moving parts.",
+    "Lossy compression discards detail acceptable to humans (e.g. JPG, MP3).",
+    "LANs cover a small geographical area such as one building or campus.",
+    "IMAP keeps emails on the server so multiple clients see the same state.",
+    "Anti-malware detects and removes harmful software like viruses and trojans.",
+    "Least privilege gives users only the access they need for their role.",
+    "Backups create copies of data that can be restored after data loss.",
+    "Word processors are application software — they perform user tasks.",
+    "The FoIA 2000 gives a right to access information held by public authorities (with exemptions).",
+    "Digital divide describes inequality in access to and use of digital technology.",
+    "The Control Unit coordinates the CPU's activity, including managing the FDE cycle.",
+    "TB > GB > MB > KB — 1 TB is roughly 1000 GB.",
+    "Switches use MAC addresses to forward frames to the correct port."
+  ],
+  MOCK4: [
+    "Penetration testing is authorised, planned simulated attacks to find weaknesses.",
+    "Strong passwords are long and mix letters, numbers and symbols.",
+    "Cores are independent processing units within one CPU package.",
+    "Von Neumann architecture uses one shared memory for both data and instructions.",
+    "ROM is non-volatile, retaining its contents without power.",
+    "DVDs use lasers to read pits and lands on a reflective disc — optical storage.",
+    "TCP/IP is the foundational protocol suite of the internet.",
+    "FTP (File Transfer Protocol) is designed for moving files between hosts.",
+    "Multitasking lets the OS switch between processes so several appear to run at once.",
+    "Compression utilities reduce file sizes for storage or transfer.",
+    "AI raises issues including bias, accountability and economic disruption.",
+    "Open source software has publicly available source code that may be modified and shared.",
+    "Encryption transforms data into ciphertext that can only be read with the correct key.",
+    "CLIs accept typed commands and produce text output (e.g. bash, PowerShell).",
+    "Cache is faster (but smaller) than main RAM, sitting closer to the CPU."
+  ]
+};
+
+const CS_MOCK_WRITTEN_DATA = {
+  MOCK1: [
+    { q:"State TWO main components of a CPU.", marks:2,
+      scheme:["Award 1 mark for each correct component named, up to 2:","• ALU (Arithmetic Logic Unit)","• CU (Control Unit)","• Cache","• Registers (PC, MAR, MDR, ACC)"] },
+    { q:"Discuss factors that affect the performance of a CPU.", marks:6,
+      scheme:["Award up to 6 marks for discussion covering AT LEAST THREE of:","• Clock speed — cycles per second; higher = more instructions/sec","• Number of cores — parallel execution of independent tasks","• Cache size — more cache reduces slower main-memory accesses","• Architecture (Von Neumann vs Harvard)","• Thermal/power constraints in practice","Award higher marks (5–6) for linked discussion rather than a list."] }
+  ],
+  MOCK2: [
+    { q:"State TWO differences between RAM and ROM.", marks:2,
+      scheme:["Award 1 mark each, up to 2:","• RAM is volatile; ROM is non-volatile","• RAM is read/write; ROM is read-only (in normal operation)","• RAM holds running programs and data; ROM typically holds firmware/boot code"] },
+    { q:"Explain TWO benefits of HTTPS over HTTP.", marks:4,
+      scheme:["Award up to 4 marks (2 per explained benefit):","• Encryption — protects data in transit so eavesdroppers cannot read it","• Authentication — TLS certificates verify the server identity","• Integrity — detects tampering with data in transit"] }
+  ],
+  MOCK3: [
+    { q:"State ONE difference between application software and system software.", marks:2,
+      scheme:["Award 1 mark for identifying application software as performing tasks for the user (e.g. word processor).","Award 1 mark for identifying system software as supporting the computer itself (e.g. OS, drivers, utilities)."] },
+    { q:"Discuss the role of an Operating System.", marks:6,
+      scheme:["Award up to 6 marks covering AT LEAST THREE of:","• Memory management (allocates and reclaims RAM)","• Process/CPU scheduling and multitasking","• Peripheral management via device drivers","• File management","• User management and access control","• Providing a user interface","Award higher marks (5–6) for explanation rather than naming alone."] }
+  ],
+  MOCK4: [
+    { q:"State TWO ways an organisation can reduce the risk of phishing.", marks:2,
+      scheme:["Award 1 mark each, up to 2:","• Staff training to recognise phishing","• Email filtering / anti-phishing tools","• Multi-factor authentication so a stolen password is not enough","• Reporting and incident-response procedures"] },
+    { q:"Discuss the environmental impact of digital technology and ways to reduce it.", marks:6,
+      scheme:["Award up to 6 marks for discussion covering AT LEAST THREE of:","• Energy use of devices and data centres","• E-waste and rare-earth mining","• Reduction: longer device lifecycles, repair and reuse","• Reduction: efficient design, renewable-powered data centres","• Reduction: responsible recycling schemes","• Carbon footprint of training large AI models","Award higher marks (5–6) for discussion that weighs trade-offs."] }
+  ]
+};
+
+const CS_DRAWINGS_DATA = [];
+const CS_DRAW_SUBS_DATA = {};
+
 /* Snapshot the R093 content so we can restore it when a teacher views as R093 again. */
 const _SNAPSHOT_R093 = {
   TOPICS: { ...TOPICS },
@@ -2515,6 +3263,30 @@ function _setArr(target, source){ target.length = 0; Array.prototype.push.apply(
 function applyCourse(course){
   // Normalise to uppercase so "ct", "Ct", " CT " all work
   course = String(course || "").trim().toUpperCase();
+  if(course === "CS"){
+    _setObj(TOPICS, CS_TOPICS);
+    _setObj(SUBTOPICS, CS_SUBTOPICS);
+    _setObj(QUIZZES, CS_QUIZZES);
+    _setObj(QUIZ_SUBS, CS_QUIZ_SUBS);
+    _setObj(BLANKS, CS_BLANKS);
+    _setObj(BLANK_SUBS, CS_BLANK_SUBS);
+    _setObj(MATCHUPS, CS_MATCHUPS);
+    _setObj(MATCH_SUBS, CS_MATCH_SUBS);
+    _setArr(WRITTEN, CS_WRITTEN);
+    _setObj(WRITTEN_SUBS, CS_WRITTEN_SUBS);
+    _setArr(FLASHCARDS, CS_FLASHCARDS);
+    _setObj(FLASH_SUB_BY_TERM, CS_FLASH_SUB_BY_TERM);
+    _setObj(KO_DATA, CS_KO_DATA);
+    _setObj(MOCKS_INDEX, CS_MOCKS_INDEX_DATA);
+    _setObj(MOCK_SUBS_INDEX, CS_MOCK_SUBS_DATA);
+    _setObj(MOCK_EXPLAIN, CS_MOCK_EXPLAIN_DATA);
+    _setObj(MOCK_WRITTEN, CS_MOCK_WRITTEN_DATA);
+    _setArr(DRAWINGS, CS_DRAWINGS_DATA);
+    _setObj(DRAW_SUBS, CS_DRAW_SUBS_DATA);
+    Object.keys(SUB_TITLE).forEach(k => delete SUB_TITLE[k]);
+    Object.values(SUBTOPICS).flat().forEach(s => { SUB_TITLE[s.id] = s.title; });
+    return;
+  }
   if(course === "CT"){
     _setObj(TOPICS, CT_TOPICS);
     _setObj(SUBTOPICS, CT_SUBTOPICS);
@@ -2884,7 +3656,8 @@ async function enterApp(){
   document.getElementById("user-role").textContent = user.role;
   const courseBadge = document.getElementById("user-course");
   if(courseBadge){
-    courseBadge.textContent = (user.course === "CT") ? "Cambridge Technicals" : "R093";
+    const courseLabels = { CT: "Digital Media", CS: "Computer Science", R093: "iMedia" };
+    courseBadge.textContent = courseLabels[user.course] || "iMedia";
     courseBadge.style.display = "";
   }
   document.querySelectorAll(".student-only").forEach(el=>el.style.display = user.role==="student" ? "" : "none");
@@ -3016,7 +3789,7 @@ function renderStudentHome(){
       div.style.cursor = "pointer";
       div.addEventListener("mouseover", ()=>{ div.style.transform = "translateY(-2px)"; div.style.boxShadow = "0 4px 14px rgba(13,71,161,.10)"; });
       div.addEventListener("mouseout", ()=>{ div.style.transform = ""; div.style.boxShadow = ""; });
-      div.addEventListener("click", ()=> goToAssignment(a.taskType, a.topic));
+      div.addEventListener("click", ()=> goToAssignment(a.taskType, a.topic, a.questionIndexes));
     }
     const cta = locked
       ? `<span class="badge upcoming" style="background:var(--bg);color:var(--muted)">🔒 LOCKED</span>
@@ -3080,15 +3853,21 @@ function renderQuizTopics(){
   });
 }
 
-function startQuiz(topic){
+function startQuiz(topic, questionIndexes){
   activeQuizTopic = topic;
   const runner = document.getElementById("quiz-runner");
   runner.style.display = "block";
   document.getElementById("quiz-topics").parentElement.style.display = "none";
-  const data = QUIZZES[topic];
+  const fullData = QUIZZES[topic];
+  // Optional teacher-picked subset. originalIdx[displayedQi] = original question index.
+  const originalIdx = (Array.isArray(questionIndexes) && questionIndexes.length)
+    ? questionIndexes.filter(i => i >= 0 && i < fullData.length)
+    : fullData.map((_,i) => i);
+  const data = originalIdx.map(i => fullData[i]);
+  const isSubset = data.length !== fullData.length;
   let answered = 0, correct = 0;
   const attempts = [];
-  let html = `<div class="card"><h2>${TOPICS[topic].title} <span class="pill">${data.length} questions</span></h2>`;
+  let html = `<div class="card"><h2>${TOPICS[topic].title} <span class="pill">${data.length} question${data.length===1?'':'s'}${isSubset ? ' (picked by teacher)' : ''}</span></h2>`;
   html += `<button class="btn btn-sm btn-secondary" onclick="exitQuiz()" style="margin-bottom:.85rem">&larr; Back to topics</button>`;
   data.forEach((it, idx)=>{
     html += `<div class="q-block" data-q="${idx}">
@@ -3106,11 +3885,13 @@ function startQuiz(topic){
         if(block.dataset.done) return;
         block.dataset.done = "1";
         const it = data[qi];
+        const origQi = originalIdx[qi];
         const fb = block.querySelector(".feedback");
         const opts = block.querySelectorAll(".q-option");
         opts.forEach(b=>b.disabled=true);
         const isCorrect = (oi === it.answer);
-        attempts.push({ qi, correct: isCorrect, sub: subFor("quiz", topic, qi) });
+        // Use the ORIGINAL question index for sub-topic / analytics consistency
+        attempts.push({ qi: origQi, correct: isCorrect, sub: subFor("quiz", topic, origQi) });
         if(isCorrect){
           btn.classList.add("correct");
           fb.className = "feedback show correct";
@@ -3815,10 +4596,19 @@ document.getElementById("assign-form").addEventListener("submit", async e=>{
   if(!selectedClassIds.length) return alert("Please tick at least one class.");
   if(releaseDate > dueDate) return alert("Release date can't be after the due date.");
 
+  // Question-level selection — leave blank if all questions are ticked (means "use all")
+  const allCbs = document.querySelectorAll('input[name="assign-q-cb"]');
+  const checkedCbs = document.querySelectorAll('input[name="assign-q-cb"]:checked');
+  let questionIndexes = "";
+  if(allCbs.length && checkedCbs.length < allCbs.length){
+    if(!checkedCbs.length) return alert("Please tick at least one question, or click Select all.");
+    questionIndexes = Array.from(checkedCbs).map(cb => cb.value).join(",");
+  }
+
   // Loop through every selected class
   const results = [];
   for(const classId of selectedClassIds){
-    const r = await api("assignHomework", { classId, taskType, topic, dueDate, releaseDate, note, createdBy:user.email });
+    const r = await api("assignHomework", { classId, taskType, topic, dueDate, releaseDate, note, questionIndexes, createdBy:user.email });
     const cls = teacherData.classes.find(c => c.id === classId);
     results.push({ name: (cls ? cls.name : classId), ok: r && r.ok, error: r && r.error });
   }
@@ -3834,8 +4624,68 @@ document.getElementById("assign-form").addEventListener("submit", async e=>{
   await loadTeacherData(); renderAssignList(); renderTeacherHome();
 });
 
+/* When the task type or topic changes, refresh the question picker too. */
+document.getElementById("assign-type").addEventListener("change", () => { refreshAssignTopicField(); refreshAssignQuestionsPicker(); });
+document.getElementById("assign-topic").addEventListener("change", () => refreshAssignQuestionsPicker());
+
+/* Build a per-question chip list for the chosen task type + topic. */
+function refreshAssignQuestionsPicker(){
+  const field = document.getElementById("assign-questions-field");
+  const picker = document.getElementById("assign-questions-picker");
+  const countLabel = document.getElementById("assign-questions-count");
+  if(!field || !picker) return;
+  const taskType = document.getElementById("assign-type").value;
+  const topic = document.getElementById("assign-topic").value;
+
+  // Build the list of question previews based on task type
+  let items = []; // {idx, preview}
+  if(taskType === "quiz" && QUIZZES[topic]){
+    items = QUIZZES[topic].map((q,i) => ({ idx:i, preview:`Q${i+1}: ${q.q.replace(/<[^>]+>/g,"").slice(0,80)}` }));
+  } else if(taskType === "blanks" && BLANKS[topic]){
+    items = BLANKS[topic].map((b,i) => ({ idx:i, preview:`Q${i+1}: ${b.text.replace(/___/g,"___").slice(0,80)}` }));
+  } else if(taskType === "match" && MATCHUPS[topic]){
+    items = MATCHUPS[topic].map((m,i) => ({ idx:i, preview:`P${i+1}: ${m.term}` }));
+  } else if(taskType === "written"){
+    items = WRITTEN.filter(w => w.topic === topic).map((w) => ({ idx: WRITTEN.indexOf(w), preview:`${w.id} (${w.marks}m): ${w.q.slice(0,70)}` }));
+  } else if(taskType === "drawing"){
+    const d = DRAWINGS.find(x => x.id === topic);
+    if(d){ items = [{ idx:0, preview: d.title }]; }
+  } else if(taskType === "flashcards"){
+    items = FLASHCARDS.filter(f => f.topic === topic).map((f) => ({ idx: FLASHCARDS.indexOf(f), preview: f.term }));
+  }
+
+  // Hide picker for task types where it doesn't apply (mocks, notes, etc.)
+  if(!items.length || ["mock","mock2","mock3","mock4","mock5","mock6","notes"].includes(taskType)){
+    field.style.display = "none";
+    return;
+  }
+  field.style.display = "";
+  picker.innerHTML = items.map(it => `
+    <label style="display:inline-flex;align-items:center;gap:.3rem;background:#fff;border:1px solid var(--border);border-radius:999px;padding:.25rem .6rem;font-size:.78rem;cursor:pointer" title="${it.preview.replace(/"/g,'&quot;')}">
+      <input type="checkbox" name="assign-q-cb" value="${it.idx}" checked style="margin:0">
+      ${it.preview.length > 32 ? it.preview.slice(0,32) + "…" : it.preview}
+    </label>
+  `).join("");
+  // Update count when ticked
+  picker.querySelectorAll('input[name="assign-q-cb"]').forEach(cb => {
+    cb.addEventListener("change", updateAssignQuestionsCount);
+  });
+  updateAssignQuestionsCount();
+}
+function updateAssignQuestionsCount(){
+  const all = document.querySelectorAll('input[name="assign-q-cb"]');
+  const selected = document.querySelectorAll('input[name="assign-q-cb"]:checked').length;
+  const label = document.getElementById("assign-questions-count");
+  if(!label) return;
+  if(selected === all.length) label.textContent = "All selected (" + all.length + ")";
+  else label.textContent = selected + " of " + all.length + " selected";
+}
+function toggleAllAssignQuestions(state){
+  document.querySelectorAll('input[name="assign-q-cb"]').forEach(cb => cb.checked = state);
+  updateAssignQuestionsCount();
+}
+
 /* When the task type changes, swap the "topic" dropdown to fit the activity. */
-document.getElementById("assign-type").addEventListener("change", refreshAssignTopicField);
 function refreshAssignTopicField(){
   // Default release date to today (only if blank)
   const rel = document.getElementById("assign-release");
@@ -3940,13 +4790,21 @@ function shuffleArr(arr){
 let matchSelected = null;
 let matchCorrect = 0;
 let matchAttempts = 0;
+let matchTotal = 0; // number of pairs actually in play (may be a subset)
 let matchTopic = null;
-function startMatch(topic){
+function startMatch(topic, questionIndexes){
   matchTopic = topic;
   matchCorrect = 0;
   matchAttempts = 0;
   matchSelected = null;
-  const pairs = MATCHUPS[topic];
+  const fullPairs = MATCHUPS[topic];
+  // Optional teacher-picked subset
+  const pickIdx = (Array.isArray(questionIndexes) && questionIndexes.length)
+    ? questionIndexes.filter(i => i >= 0 && i < fullPairs.length)
+    : fullPairs.map((_,i) => i);
+  const pairs = pickIdx.map(i => fullPairs[i]);
+  matchTotal = pairs.length;
+  const isSubset = pairs.length !== fullPairs.length;
   const terms = shuffleArr(pairs.map((p,i)=>({ key:i, label:p.term })));
   const defs  = shuffleArr(pairs.map((p,i)=>({ key:i, label:p.def  })));
   const runner = document.getElementById("match-runner");
@@ -3954,7 +4812,7 @@ function startMatch(topic){
   document.getElementById("s-match").querySelector(".card").style.display = "none";
   runner.innerHTML = `
     <div class="card">
-      <h2>${TOPICS[topic].title} <span class="pill">${pairs.length} pairs</span></h2>
+      <h2>${TOPICS[topic].title} <span class="pill">${pairs.length} pair${pairs.length===1?'':'s'}${isSubset ? ' (picked by teacher)' : ''}</span></h2>
       <button class="btn btn-sm btn-secondary" onclick="exitMatch()" style="margin-bottom:.85rem">&larr; Back to topics</button>
       <p class="lead">Click a term, then click the matching definition. Correct pairs turn green.</p>
       <div class="match-grid">
@@ -4000,7 +4858,7 @@ async function handleMatchClick(cell){
     cell.disabled = true;
     matchCorrect++;
     matchSelected = null;
-    if(matchCorrect === MATCHUPS[matchTopic].length) finishMatch();
+    if(matchCorrect === matchTotal) finishMatch();
   } else {
     const a = matchSelected, b = cell;
     a.classList.add("wrong-flash");
@@ -4013,7 +4871,7 @@ async function handleMatchClick(cell){
   }
 }
 async function finishMatch(){
-  const total = MATCHUPS[matchTopic].length;
+  const total = matchTotal || MATCHUPS[matchTopic].length;
   const score = Math.max(0, total - (matchAttempts - total));
   const final = document.querySelector("#match-runner .match-final");
   final.classList.add("show");
@@ -4044,15 +4902,20 @@ function renderBlanksTopics(){
     grid.appendChild(tile);
   });
 }
-function startBlanks(topic){
-  const data = BLANKS[topic];
+function startBlanks(topic, questionIndexes){
+  const fullData = BLANKS[topic];
+  const originalIdx = (Array.isArray(questionIndexes) && questionIndexes.length)
+    ? questionIndexes.filter(i => i >= 0 && i < fullData.length)
+    : fullData.map((_,i) => i);
+  const data = originalIdx.map(i => fullData[i]);
+  const isSubset = data.length !== fullData.length;
   let answered = 0, correct = 0;
   const attempts = [];
   const runner = document.getElementById("blanks-runner");
   runner.style.display = "block";
   document.getElementById("s-blanks").querySelector(".card").style.display = "none";
   let html = `<div class="card">
-    <h2>${TOPICS[topic].title} <span class="pill">${data.length} sentences</span></h2>
+    <h2>${TOPICS[topic].title} <span class="pill">${data.length} sentence${data.length===1?'':'s'}${isSubset ? ' (picked by teacher)' : ''}</span></h2>
     <button class="btn btn-sm btn-secondary" onclick="exitBlanks()" style="margin-bottom:.85rem">&larr; Back to topics</button>`;
   data.forEach((it, idx)=>{
     const parts = it.text.split("___");
@@ -4071,6 +4934,7 @@ function startBlanks(topic){
         if(block.dataset.done) return;
         block.dataset.done = "1";
         const it = data[qi];
+        const origQi = originalIdx[qi];
         const fb = block.querySelector(".feedback");
         const slot = block.querySelector(".blank-slot");
         const opts = block.querySelectorAll(".q-option");
@@ -4078,7 +4942,7 @@ function startBlanks(topic){
         slot.classList.add("filled");
         slot.textContent = it.options[oi];
         const isCorrect = (oi === it.answer);
-        attempts.push({ qi, correct: isCorrect, sub: subFor("blanks", topic, qi) });
+        attempts.push({ qi: origQi, correct: isCorrect, sub: subFor("blanks", topic, origQi) });
         if(isCorrect){
           btn.classList.add("correct");
           slot.classList.add("correct");
@@ -4557,13 +5421,18 @@ enterApp = async function(){
    ASSIGNMENT ROUTING  —  extend goToAssignment for new types
    ============================================================ */
 const _origGoToAssignment = goToAssignment;
-goToAssignment = function(taskType, topic){
+goToAssignment = function(taskType, topic, questionIndexes){
   const mockMap = { mock:"MOCK1", mock2:"MOCK2", mock3:"MOCK3", mock4:"MOCK4", mock5:"MOCK5", mock6:"MOCK6" };
   const subMap  = { quiz:"s-quiz", written:"s-written", match:"s-match", blanks:"s-blanks", drawing:"s-draw" };
   if(taskType in mockMap) subMap[taskType] = "s-mock";
 
   const target = subMap[taskType] || (taskType === "flashcards" ? "s-flash" : null);
   if(!target) return;
+
+  // Parse questionIndexes string ("2,5,7") into an int array, or null = use all
+  const idxs = (typeof questionIndexes === "string" && questionIndexes.trim())
+    ? questionIndexes.split(",").map(s => parseInt(s.trim(),10)).filter(n => !isNaN(n))
+    : null;
 
   if(target === "s-flash"){
     const tab = document.querySelector(`#student-nav button[data-panel="s-flash"]`);
@@ -4577,11 +5446,11 @@ goToAssignment = function(taskType, topic){
   }
 
   if(taskType === "quiz" && topic){
-    setTimeout(()=> startQuiz(topic), 60);
+    setTimeout(()=> startQuiz(topic, idxs), 60);
   } else if(taskType === "match" && topic){
-    setTimeout(()=> startMatch(topic), 60);
+    setTimeout(()=> startMatch(topic, idxs), 60);
   } else if(taskType === "blanks" && topic){
-    setTimeout(()=> startBlanks(topic), 60);
+    setTimeout(()=> startBlanks(topic, idxs), 60);
   } else if(taskType === "drawing" && topic){
     setTimeout(()=> openDrawTask(topic), 60);
   } else if(taskType in mockMap){
@@ -4653,7 +5522,7 @@ function renderHomeworkPage(){
       div.style.cursor = "pointer";
       div.addEventListener("mouseover", ()=>{ div.style.transform = "translateY(-2px)"; div.style.boxShadow = "0 4px 14px rgba(13,71,161,.10)"; });
       div.addEventListener("mouseout", ()=>{ div.style.transform = ""; div.style.boxShadow = ""; });
-      div.addEventListener("click", ()=> goToAssignment(a.taskType, a.topic));
+      div.addEventListener("click", ()=> goToAssignment(a.taskType, a.topic, a.questionIndexes));
     }
     const cta = locked
       ? `<span class="badge upcoming" style="background:var(--bg);color:var(--muted)">🔒 LOCKED</span>
@@ -4866,7 +5735,7 @@ mockAPI.getTeacherData = function(p){
   return r;
 };
 
-// Wrap assignHomework to also store the note + release date
+// Wrap assignHomework to also store the note + release date + question selection
 const _origMockAssign = mockAPI.assignHomework;
 mockAPI.assignHomework = function(p){
   const r = _origMockAssign.call(this, p);
@@ -4876,6 +5745,7 @@ mockAPI.assignHomework = function(p){
     if(a){
       a.note = p.note || "";
       a.releaseDate = p.releaseDate || new Date().toISOString().slice(0,10);
+      a.questionIndexes = p.questionIndexes || "";
       this._set("assignments", arr);
     }
   }
