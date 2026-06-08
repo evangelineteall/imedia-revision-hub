@@ -461,7 +461,7 @@
           <button class="active" data-subpanel="s-quiz">Quizzes</button>
           <button data-subpanel="s-match">Match</button>
           <button data-subpanel="s-blanks">Blanks</button>
-          <button data-subpanel="s-draw">Draw</button>
+          <button data-subpanel="s-draw" id="nav-draw">Draw</button>
           <button data-subpanel="s-written">Written</button>
           <button data-subpanel="s-mock">Mock</button>
         </nav>
@@ -636,7 +636,7 @@
               <option value="blanks">Fill in the blanks</option>
               <option value="written">Exam-style written</option>
               <option value="flashcards">Flashcards (mastery)</option>
-              <option value="drawing">Drawing task</option>
+              <option value="drawing" id="assign-type-drawing">Drawing task</option>
               <option value="mock">Mock paper 1</option>
               <option value="mock2">Mock paper 2</option>
               <option value="mock3">Mock paper 3</option>
@@ -3387,6 +3387,9 @@ function _courseData(code){
 }
 function _classCourse(cls){
   if(!cls) return "R093";
+  // 1) Course explicitly set on the class wins.
+  if(cls.course) return String(cls.course).trim().toUpperCase();
+  // 2) Otherwise infer from the first student's course on file.
   for(const email of (cls.students || [])){
     const p = (teacherData.allProgress || []).find(x => String(x.email).toLowerCase() === String(email).toLowerCase());
     if(p && p.course) return String(p.course).trim().toUpperCase();
@@ -3487,14 +3490,23 @@ const mockAPI = {
     "daniel.tyson@ralphthoresby.com",
     "mudassir.mir@ralphthoresby.com"
   ],
-  createClass({ teacherEmail, name }){
+  createClass({ teacherEmail, name, course }){
     const arr = this._get("classes", []);
     const id = "c_" + Date.now();
     const owner = teacherEmail.toLowerCase();
     const sharedWith = this._autoShareTeachers.map(e => e.toLowerCase()).filter(e => e !== owner);
-    arr.push({ id, name, teacherEmail: owner, students:[], sharedWith });
+    arr.push({ id, name, teacherEmail: owner, students:[], sharedWith, course: String(course||"R093").trim().toUpperCase() });
     this._set("classes", arr);
     return { ok:true, id };
+  },
+  updateClassCourse({ classId, course }){
+    if(!classId || !course) return { ok:false, error:"Missing class id or course." };
+    const arr = this._get("classes", []);
+    const c = arr.find(x => x.id === classId);
+    if(!c) return { ok:false, error:"Class not found." };
+    c.course = String(course).trim().toUpperCase();
+    this._set("classes", arr);
+    return { ok:true };
   },
   shareClass({ classId, teacherEmail }){
     if(!classId || !teacherEmail) return { ok:false, error:"Missing class id or teacher email." };
@@ -4249,16 +4261,19 @@ function renderClassesList(){
         ${canUnshare ? `<button data-unshare-class="${c.id}" data-unshare-teacher="${email}" title="Stop sharing with this teacher" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.95rem;padding:0 .15rem;line-height:1">&times;</button>` : ''}
       </span>`;
     }).join("");
+    const courseCode = _classCourse(c);
+    const courseLabel = _COURSE_LABEL[courseCode] || courseCode;
     card.innerHTML = `
       <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem">
         <div style="flex:1;min-width:200px">
           <div class="q-num">CLASS ID ${c.id}${isOwner ? '' : ' &middot; SHARED WITH YOU'}</div>
-          <div class="q-text" style="margin:.2rem 0">${c.name}</div>
+          <div class="q-text" style="margin:.2rem 0">${c.name} <span style="font-size:.7rem;background:#eef3fa;color:var(--primary-dark);padding:2px 7px;border-radius:6px;font-weight:600;vertical-align:middle">${courseLabel}</span></div>
           <div style="color:var(--muted);font-size:.88rem">${(c.students||[]).length} student${(c.students||[]).length===1?'':'s'}</div>
         </div>
         <div style="display:flex;gap:.4rem;flex-wrap:wrap">
           <button class="btn btn-sm btn-secondary" onclick="openAddStudentModal('${c.id}','${safeName}')">+ Add student</button>
           <button class="btn btn-sm btn-secondary" onclick="openBulkImportModal('${c.id}','${safeName}')">📥 Bulk import</button>
+          ${isOwner ? `<button class="btn btn-sm btn-secondary" onclick="openSetClassCourseModal('${c.id}','${safeName}','${courseCode}')">🎓 Set course</button>` : ''}
           ${isOwner ? `<button class="btn btn-sm btn-secondary" onclick="openRenameClassModal('${c.id}','${safeName}')">✏️ Rename</button>` : ''}
           ${isOwner ? `<button class="btn btn-sm btn-secondary" onclick="openShareClassModal('${c.id}','${safeName}')">🤝 Share</button>` : ''}
           ${isOwner ? `<button class="btn btn-sm btn-danger" data-del-class="${c.id}" title="Delete this class">🗑 Delete class</button>` : ''}
@@ -4452,12 +4467,50 @@ function openCreateClassModal(){
   document.getElementById("modal-body").innerHTML = `
     <h3>Create a new class</h3>
     <div class="field"><label>Class name</label><input type="text" id="new-class-name" placeholder="e.g. 10X iMedia"></div>
+    <div class="field">
+      <label>Course</label>
+      <select id="new-class-course">
+        <option value="R093">iMedia (R093)</option>
+        <option value="CT">Digital Media (CT)</option>
+        <option value="CS">Comp Sci (J277)</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
       <button class="btn" onclick="createClass()">Create</button>
     </div>
   `;
   back.classList.add("show");
+}
+function openSetClassCourseModal(classId, className, currentCourse){
+  document.getElementById("modal-body").innerHTML = `
+    <h3>Set course for "${className}"</h3>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:.5rem">Pick which course this class is studying. It controls the topic dropdowns in Progress, Analytics and Assign Homework.</p>
+    <div class="field">
+      <label>Course</label>
+      <select id="set-class-course">
+        <option value="R093"${currentCourse==="R093"?" selected":""}>iMedia (R093)</option>
+        <option value="CT"${currentCourse==="CT"?" selected":""}>Digital Media (CT)</option>
+        <option value="CS"${currentCourse==="CS"?" selected":""}>Comp Sci (J277)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="setClassCourse('${classId}')">Save</button>
+    </div>
+  `;
+  document.getElementById("modal-back").classList.add("show");
+}
+async function setClassCourse(classId){
+  const course = document.getElementById("set-class-course").value;
+  const r = await api("updateClassCourse", { classId, course });
+  closeModal();
+  if(r && r.ok){
+    await loadTeacherData();
+    renderClassesList(); renderProgress(); renderAssignForm(); if(typeof renderAnalytics === "function") renderAnalytics();
+  } else {
+    alert((r && r.error) || "Could not update course.");
+  }
 }
 function openAddStudentModal(classId, className){
   document.getElementById("modal-body").innerHTML = `
@@ -4475,8 +4528,9 @@ function closeModal(){ document.getElementById("modal-back").classList.remove("s
 
 async function createClass(){
   const name = document.getElementById("new-class-name").value.trim();
+  const course = (document.getElementById("new-class-course") || {}).value || "R093";
   if(!name) return;
-  const r = await api("createClass", { teacherEmail:user.email, name });
+  const r = await api("createClass", { teacherEmail:user.email, name, course });
   closeModal();
   if(r.ok){ await loadTeacherData(); renderClassesList(); renderTeacherHome(); renderProgress(); renderAssignForm(); }
   else alert(r.error || "Could not create class.");
@@ -4789,6 +4843,20 @@ function refreshAssignTopicField(){
   // Pick the course data to populate from. Default to the teacher's course if no class is ticked yet.
   const code = (courseCode && courseCode !== "MIXED") ? courseCode : ((user && user.course) || "R093");
   const cd = _courseData(code);
+
+  // CS students don't have a drawing element in their exam — hide the "Drawing task" option.
+  const drawOpt = document.getElementById("assign-type-drawing");
+  const typeSel = document.getElementById("assign-type");
+  if(drawOpt){
+    if(code === "CS"){
+      drawOpt.disabled = true;
+      drawOpt.style.display = "none";
+      if(typeSel && typeSel.value === "drawing") typeSel.value = "quiz"; // bump off drawing if user had it selected
+    } else {
+      drawOpt.disabled = false;
+      drawOpt.style.display = "";
+    }
+  }
 
   // Mocks ignore topic, hide the field
   if(t === "mock" || t === "mock2"){
@@ -5503,6 +5571,10 @@ enterApp = async function(){
     renderMatchTopics();
     renderBlanksTopics();
     renderDrawList();
+    // Computer Science students don't have a drawing element in their exam — hide the Draw tab for them.
+    const studentCourse = String((user && user.course) || "R093").trim().toUpperCase();
+    const drawBtn = document.getElementById("nav-draw");
+    if(drawBtn) drawBtn.style.display = (studentCourse === "CS") ? "none" : "";
     try{ await loadTeacherQuestions(); }catch(e){}
   } else if(user && user.role === "teacher"){
     refreshAssignTopicField();
