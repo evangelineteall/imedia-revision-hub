@@ -35,7 +35,7 @@ const AUTO_SHARE_TEACHERS = [
 
 const HEADERS = {
   Users:           ["email","name","role","passwordHash","lastActive","course"],
-  Classes:         ["id","name","teacherEmail","studentsCsv","sharedWithCsv"],
+  Classes:         ["id","name","teacherEmail","studentsCsv","sharedWithCsv","course"],
   Quizzes:         ["timestamp","email","topic","score","total","taskType","details"],
   WrittenAnswers:  ["id","timestamp","email","questionId","answer","mark","feedback","markedBy"],
   Flashcards:      ["timestamp","email","term","status"],
@@ -221,7 +221,7 @@ const ACTIONS = {
     return { ok: true };
   },
 
-  createClass({ teacherEmail, name }) {
+  createClass({ teacherEmail, name, course }) {
     if (!teacherEmail || !name) return { ok: false, error: "Missing fields." };
     const id = "c_" + new Date().getTime();
     const owner = teacherEmail.toLowerCase();
@@ -231,9 +231,18 @@ const ACTIONS = {
       .filter(e => e !== owner);
     appendRow(SHEETS.CLASSES, {
       id, name, teacherEmail: owner, studentsCsv: "",
-      sharedWithCsv: sharedWith.join(",")
+      sharedWithCsv: sharedWith.join(","),
+      course: String(course || "R093").trim().toUpperCase()
     });
     return { ok: true, id };
+  },
+
+  updateClassCourse({ classId, course }) {
+    if (!classId || !course) return { ok: false, error: "Missing class id or course." };
+    const cls = readAll(SHEETS.CLASSES).find(c => c.id === classId);
+    if (!cls) return { ok: false, error: "Class not found." };
+    updateRow(SHEETS.CLASSES, "id", classId, { course: String(course).trim().toUpperCase() });
+    return { ok: true };
   },
 
   renameClass({ classId, name }) {
@@ -515,6 +524,7 @@ const ACTIONS = {
         teacherEmail: c.teacherEmail,
         students: (c.studentsCsv||"").split(",").map(s=>s.trim()).filter(Boolean),
         sharedWith: (c.sharedWithCsv||"").split(",").map(s=>s.trim()).filter(Boolean),
+        course: String(c.course || "R093").trim().toUpperCase(),
         isOwner: String(c.teacherEmail).toLowerCase() === email
       }));
     const allStudentEmails = Array.from(new Set(classes.flatMap(c => c.students)));
