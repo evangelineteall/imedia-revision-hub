@@ -426,7 +426,6 @@
       <button data-panel="t-classes">Classes</button>
       <button data-panel="t-progress">Progress</button>
       <button data-panel="t-analytics">Analytics</button>
-      <button data-panel="t-mark">Marking</button>
       <button data-panel="t-assign">Assign</button>
       <button data-panel="t-questions">Questions</button>
     </nav>
@@ -620,14 +619,6 @@
       </div>
     </section>
 
-    <section class="panel teacher-only" id="t-mark" style="display:none">
-      <div class="card">
-        <h2>Written answers awaiting marking</h2>
-        <p class="lead">Type a mark and short feedback for each submitted answer.</p>
-        <div id="t-mark-list"><div class="empty">Loading&hellip;</div></div>
-      </div>
-    </section>
-
     <section class="panel teacher-only" id="t-assign" style="display:none">
       <div class="card">
         <h2>Set homework</h2>
@@ -694,8 +685,16 @@
     <section class="panel teacher-only" id="t-questions" style="display:none">
       <div class="card">
         <h2>Question bank <span class="pill">your own questions</span></h2>
-        <p class="lead">Add your own quiz questions. They appear alongside the built-in ones for students on your course, and show up in the assign-homework picker so you can choose them too.</p>
+        <p class="lead">Add your own quiz questions. They appear alongside the built-in ones for students on the chosen course, and show up in the assign-homework picker so you can choose them too.</p>
         <div class="row" style="gap:.6rem;margin-bottom:.85rem;align-items:end">
+          <div class="field" style="flex:1;min-width:140px;margin:0">
+            <label>Course</label>
+            <select id="tq-filter-course" class="btn btn-sm btn-secondary" style="padding:.45rem .7rem;width:100%">
+              <option value="R093">iMedia (R093)</option>
+              <option value="CT">Digital Media (CT)</option>
+              <option value="CS">Comp Sci (J277)</option>
+            </select>
+          </div>
           <div class="field" style="flex:1;min-width:160px;margin:0">
             <label>Topic</label>
             <select id="tq-filter-topic" class="btn btn-sm btn-secondary" style="padding:.45rem .7rem;width:100%"></select>
@@ -3346,6 +3345,65 @@ function applyCourse(course){
 }
 
 /* ============================================================
+   COURSE-AWARE HELPERS — let teachers who teach more than one
+   course see the right topics for each class.
+   ============================================================ */
+const _COURSE_LABEL = { R093: "iMedia", CT: "Digital Media", CS: "Comp Sci" };
+function _courseData(code){
+  code = String(code || "R093").trim().toUpperCase();
+  if(code === "CT") return {
+    TOPICS: CT_TOPICS, SUBTOPICS: CT_SUBTOPICS,
+    QUIZZES: CT_QUIZZES, QUIZ_SUBS: CT_QUIZ_SUBS,
+    BLANKS: CT_BLANKS, BLANK_SUBS: CT_BLANK_SUBS,
+    MATCHUPS: CT_MATCHUPS, MATCH_SUBS: CT_MATCH_SUBS,
+    WRITTEN: CT_WRITTEN, WRITTEN_SUBS: CT_WRITTEN_SUBS,
+    FLASHCARDS: CT_FLASHCARDS,
+    KO_DATA: CT_KO_DATA,
+    MOCKS_INDEX: CT_MOCKS_INDEX_DATA, MOCK_SUBS_INDEX: CT_MOCK_SUBS_DATA, MOCK_EXPLAIN: CT_MOCK_EXPLAIN_DATA, MOCK_WRITTEN: CT_MOCK_WRITTEN_DATA,
+    DRAWINGS: CT_DRAWINGS_DATA, DRAW_SUBS: CT_DRAW_SUBS_DATA
+  };
+  if(code === "CS") return {
+    TOPICS: CS_TOPICS, SUBTOPICS: CS_SUBTOPICS,
+    QUIZZES: CS_QUIZZES, QUIZ_SUBS: CS_QUIZ_SUBS,
+    BLANKS: CS_BLANKS, BLANK_SUBS: CS_BLANK_SUBS,
+    MATCHUPS: CS_MATCHUPS, MATCH_SUBS: CS_MATCH_SUBS,
+    WRITTEN: CS_WRITTEN, WRITTEN_SUBS: CS_WRITTEN_SUBS,
+    FLASHCARDS: CS_FLASHCARDS,
+    KO_DATA: CS_KO_DATA,
+    MOCKS_INDEX: CS_MOCKS_INDEX_DATA, MOCK_SUBS_INDEX: CS_MOCK_SUBS_DATA, MOCK_EXPLAIN: CS_MOCK_EXPLAIN_DATA, MOCK_WRITTEN: CS_MOCK_WRITTEN_DATA,
+    DRAWINGS: CS_DRAWINGS_DATA, DRAW_SUBS: CS_DRAW_SUBS_DATA
+  };
+  return {
+    TOPICS: _SNAPSHOT_R093.TOPICS, SUBTOPICS: _SNAPSHOT_R093.SUBTOPICS,
+    QUIZZES: _SNAPSHOT_R093.QUIZZES, QUIZ_SUBS: _SNAPSHOT_R093.QUIZ_SUBS,
+    BLANKS: _SNAPSHOT_R093.BLANKS, BLANK_SUBS: _SNAPSHOT_R093.BLANK_SUBS,
+    MATCHUPS: _SNAPSHOT_R093.MATCHUPS, MATCH_SUBS: _SNAPSHOT_R093.MATCH_SUBS,
+    WRITTEN: _SNAPSHOT_R093.WRITTEN, WRITTEN_SUBS: _SNAPSHOT_R093.WRITTEN_SUBS,
+    FLASHCARDS: _SNAPSHOT_R093.FLASHCARDS,
+    KO_DATA: _SNAPSHOT_R093.KO_DATA,
+    MOCKS_INDEX: _SNAPSHOT_R093.MOCKS_INDEX, MOCK_SUBS_INDEX: _SNAPSHOT_R093.MOCK_SUBS_INDEX, MOCK_EXPLAIN: _SNAPSHOT_R093.MOCK_EXPLAIN, MOCK_WRITTEN: _SNAPSHOT_R093.MOCK_WRITTEN,
+    DRAWINGS: _SNAPSHOT_R093.DRAWINGS, DRAW_SUBS: _SNAPSHOT_R093.DRAW_SUBS
+  };
+}
+function _classCourse(cls){
+  if(!cls) return "R093";
+  for(const email of (cls.students || [])){
+    const p = (teacherData.allProgress || []).find(x => String(x.email).toLowerCase() === String(email).toLowerCase());
+    if(p && p.course) return String(p.course).trim().toUpperCase();
+  }
+  return "R093";
+}
+function _selectedAssignCourse(){
+  const ids = Array.from(document.querySelectorAll('input[name="assign-class-cb"]:checked')).map(cb => cb.value);
+  if(!ids.length) return null;
+  const courses = ids.map(id => _classCourse(teacherData.classes.find(c => c.id === id))).filter(Boolean);
+  const unique = Array.from(new Set(courses));
+  if(unique.length === 0) return null;
+  if(unique.length > 1) return "MIXED";
+  return unique[0];
+}
+
+/* ============================================================
    STATE
    ============================================================ */
 let user = null;
@@ -3558,6 +3616,7 @@ const mockAPI = {
       email: e,
       name: (userIndex[e] && userIndex[e].name) || e,
       lastActive: (userIndex[e] && userIndex[e].lastActive) || "",
+      course: String((userIndex[e] && userIndex[e].course) || "R093").trim().toUpperCase(),
       quizzes: quizRows.filter(q => q.email === e).map(q => ({ topic:q.topic, score:Number(q.score), total:Number(q.total), timestamp:q.timestamp, taskType: q.taskType || "quiz", details: q.details || [] })),
       mocks: mockRows.filter(m => m.email === e).map(m => ({ mockId: m.mockId || "MOCK1", score:Number(m.score), total:Number(m.total), timestamp:m.timestamp, details: m.details || [] }))
     }));
@@ -3668,9 +3727,14 @@ async function enterApp(){
   document.getElementById("user-role").textContent = user.role;
   const courseBadge = document.getElementById("user-course");
   if(courseBadge){
-    const courseLabels = { CT: "Digital Media", CS: "Computer Science", R093: "iMedia" };
-    courseBadge.textContent = courseLabels[user.course] || "iMedia";
-    courseBadge.style.display = "";
+    // Show the course pill only for students; teachers teach multiple courses so it's misleading.
+    if(user.role === "student"){
+      const courseLabels = { CT: "Digital Media", CS: "Computer Science", R093: "iMedia" };
+      courseBadge.textContent = courseLabels[user.course] || "iMedia";
+      courseBadge.style.display = "";
+    } else {
+      courseBadge.style.display = "none";
+    }
   }
   document.querySelectorAll(".student-only").forEach(el=>el.style.display = user.role==="student" ? "" : "none");
   document.querySelectorAll(".teacher-only").forEach(el=>el.style.display = user.role==="teacher" ? "" : "none");
@@ -3694,7 +3758,6 @@ async function enterApp(){
     renderTeacherHome();
     renderClassesList();
     renderProgress();
-    renderMarkList();
     renderAssignForm();
     renderAssignList();
   }
@@ -4136,12 +4199,10 @@ function renderTeacherHome(){
   const stats = document.getElementById("t-stats");
   const totalStudents = teacherData.classes.reduce((a,c)=>a+(c.students||[]).length, 0);
   const totalQuizzes = teacherData.allProgress.reduce((a,p)=>a+(p.quizzes||[]).length, 0);
-  const pendingMarks = (teacherData.pendingMarking||[]).length;
   stats.innerHTML = `
     <div class="stat ta1"><div class="label">Classes</div><div class="value">${teacherData.classes.length}</div></div>
     <div class="stat ta2"><div class="label">Students</div><div class="value">${totalStudents}</div></div>
     <div class="stat ta3"><div class="label">Quizzes attempted</div><div class="value">${totalQuizzes}</div></div>
-    <div class="stat ta4"><div class="label">Awaiting marking</div><div class="value">${pendingMarks}</div></div>
   `;
 
   const recent = document.getElementById("t-recent");
@@ -4447,9 +4508,13 @@ function renderProgress(){
 function drawProgressTable(){
   const cls = teacherData.classes.find(c=>c.id === document.getElementById("t-progress-class").value);
   if(!cls) return;
+  // Topics shown are driven by THE CLASS's course, not the teacher's loaded course.
+  const courseCode = _classCourse(cls);
+  const cd = _courseData(courseCode);
+  const topicKeys = Object.keys(cd.TOPICS);
   const rows = (cls.students||[]).map(email=>{
     const p = teacherData.allProgress.find(x=>x.email===email) || { email, quizzes:[] };
-    const cells = Object.keys(TOPICS).map(t=>{
+    const cells = topicKeys.map(t=>{
       const recs = (p.quizzes||[]).filter(q=>q.topic===t);
       if(!recs.length) return `<td><span class="rag-na">&mdash;</span></td>`;
       const last = recs[recs.length-1];
@@ -4460,13 +4525,14 @@ function drawProgressTable(){
     return `<tr><td>${p.name||email}</td>${cells}<td>${lastActive}</td></tr>`;
   }).join("");
   document.getElementById("t-progress-table").innerHTML = `
+    <div style="font-size:.82rem;color:var(--muted);margin-bottom:.4rem">Showing <strong>${_COURSE_LABEL[courseCode]||courseCode}</strong> topics for ${cls.name}.</div>
     <table class="tbl">
-      <thead><tr><th>Student</th>${Object.keys(TOPICS).map(t=>`<th>${t}</th>`).join("")}<th>Last active</th></tr></thead>
-      <tbody>${rows || '<tr><td colspan="6" style="text-align:center;color:var(--muted)">No students yet</td></tr>'}</tbody>
+      <thead><tr><th>Student</th>${topicKeys.map(t=>`<th>${t}</th>`).join("")}<th>Last active</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="${topicKeys.length+2}" style="text-align:center;color:var(--muted)">No students yet</td></tr>`}</tbody>
     </table>
   `;
   // Heat map (averages)
-  const heatRow = Object.keys(TOPICS).map(t=>{
+  const heatRow = topicKeys.map(t=>{
     const scores = [];
     (cls.students||[]).forEach(e=>{
       const p = teacherData.allProgress.find(x=>x.email===e);
@@ -4491,41 +4557,9 @@ function drawProgressTable(){
 /* ============================================================
    TEACHER  &mdash;  MARKING
    ============================================================ */
-function renderMarkList(){
-  const box = document.getElementById("t-mark-list");
-  const items = teacherData.pendingMarking || [];
-  if(!items.length){ box.innerHTML = '<div class="empty">Nothing waiting to be marked.</div>'; return; }
-  box.innerHTML = "";
-  items.forEach(it=>{
-    const wq = WRITTEN.find(w=>w.id===it.questionId);
-    if(!wq) return;
-    const div = document.createElement("div");
-    div.className = "written-q";
-    div.innerHTML = `
-      <div class="meta">
-        <div><span class="q-num">${it.studentName||it.studentEmail} &middot; ${it.questionId} (${wq.topic})</span></div>
-        <span class="marks">${wq.marks} mark${wq.marks>1?'s':''}</span>
-      </div>
-      <div class="q-text">${wq.q}</div>
-      <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem .85rem;font-size:.92rem;white-space:pre-wrap">${it.answer}</div>
-      <div class="row" style="margin-top:.6rem">
-        <input type="number" min="0" max="${wq.marks}" placeholder="Mark / ${wq.marks}" id="m-${it.id}" style="width:100px;padding:.5rem .65rem;border:1.5px solid var(--border);border-radius:6px">
-        <input type="text" placeholder="Feedback (optional)" id="f-${it.id}" style="flex:1;padding:.5rem .65rem;border:1.5px solid var(--border);border-radius:6px">
-        <button class="btn btn-sm" onclick="markWritten('${it.id}', ${wq.marks})">Save mark</button>
-      </div>
-    `;
-    box.appendChild(div);
-  });
-}
-async function markWritten(submissionId, max){
-  const mark = document.getElementById(`m-${submissionId}`).value;
-  const feedback = document.getElementById(`f-${submissionId}`).value;
-  if(mark === "" || mark < 0 || mark > max) return alert(`Mark must be between 0 and ${max}.`);
-  await api("markWritten", { submissionId, mark:Number(mark), feedback, markedBy:user.email });
-  await loadTeacherData();
-  renderMarkList();
-  renderTeacherHome();
-}
+/* Marking tab was removed — keep no-op stubs so any stale call sites don't throw. */
+function renderMarkList(){ /* removed */ }
+async function markWritten(){ /* removed */ }
 
 /* ============================================================
    TEACHER  &mdash;  ASSIGN
@@ -4536,12 +4570,20 @@ function renderAssignForm(){
     box.innerHTML = '<div class="empty" style="padding:.4rem">Create a class first.</div>';
     return;
   }
-  box.innerHTML = teacherData.classes.map(c => `
+  box.innerHTML = teacherData.classes.map(c => {
+    const code = _classCourse(c);
+    const label = _COURSE_LABEL[code] || code;
+    return `
     <label style="display:inline-flex;align-items:center;gap:.35rem;background:#fff;border:1px solid var(--border);border-radius:999px;padding:.3rem .7rem;font-size:.86rem;cursor:pointer">
       <input type="checkbox" name="assign-class-cb" value="${c.id}" style="margin:0">
       ${c.name}
-    </label>
-  `).join("");
+      <span style="font-size:.7rem;background:var(--bg);color:var(--muted);padding:1px 6px;border-radius:6px">${label}</span>
+    </label>`;
+  }).join("");
+  // When any class is ticked/unticked, the topic dropdown + question picker must repopulate
+  box.querySelectorAll('input[name="assign-class-cb"]').forEach(cb => {
+    cb.addEventListener("change", () => { refreshAssignTopicField(); refreshAssignQuestionsPicker(); });
+  });
 }
 function renderAssignList(){
   const box = document.getElementById("assign-list");
@@ -4602,6 +4644,9 @@ document.getElementById("assign-form").addEventListener("submit", async e=>{
   const releaseDate = new Date().toISOString().slice(0,10); // assignments are always live immediately
   const note = document.getElementById("assign-note").value.trim();
   if(!selectedClassIds.length) return alert("Please tick at least one class.");
+  // Block mixed-course assignments
+  const _course = _selectedAssignCourse();
+  if(_course === "MIXED") return alert("The selected classes are on different courses (iMedia / Digital Media / Comp Sci). Please assign to one course at a time so the topics line up.");
 
   // Question-level selection — leave blank if all questions are ticked (means "use all")
   const allCbs = document.querySelectorAll('input[name="assign-q-cb"]');
@@ -4644,28 +4689,31 @@ function refreshAssignQuestionsPicker(){
   const taskType = document.getElementById("assign-type").value;
   const topic = document.getElementById("assign-topic").value;
 
-  // Build the list of question previews based on task type
+  // Build the list of question previews using the SELECTED CLASS's course data.
+  const courseCode = _selectedAssignCourse() || ((user && user.course) || "R093");
+  const cd = (courseCode === "MIXED") ? _courseData("R093") : _courseData(courseCode);
+
   let items = []; // {idx, preview, teacher}
-  if(taskType === "quiz" && QUIZZES[topic]){
-    const builtInLen = QUIZZES[topic].length;
-    items = QUIZZES[topic].map((q,i) => ({ idx:i, preview:`Q${i+1}: ${q.q.replace(/<[^>]+>/g,"").slice(0,80)}` }));
+  if(taskType === "quiz" && cd.QUIZZES[topic]){
+    const builtInLen = cd.QUIZZES[topic].length;
+    items = cd.QUIZZES[topic].map((q,i) => ({ idx:i, preview:`Q${i+1}: ${q.q.replace(/<[^>]+>/g,"").slice(0,80)}` }));
     // Append teacher-authored questions (their idx is offset past the built-ins)
     const teacherQs = (typeof getTeacherQuestionsFor === "function" ? getTeacherQuestionsFor("quiz", topic) : []);
     teacherQs.forEach((tq, j) => {
       const q = ((tq.data && tq.data.q) || "(teacher question)").replace(/<[^>]+>/g,"").slice(0,80);
       items.push({ idx: builtInLen + j, preview: `T${j+1}: ${q}`, teacher: true });
     });
-  } else if(taskType === "blanks" && BLANKS[topic]){
-    items = BLANKS[topic].map((b,i) => ({ idx:i, preview:`Q${i+1}: ${b.text.replace(/___/g,"___").slice(0,80)}` }));
-  } else if(taskType === "match" && MATCHUPS[topic]){
-    items = MATCHUPS[topic].map((m,i) => ({ idx:i, preview:`P${i+1}: ${m.term}` }));
+  } else if(taskType === "blanks" && cd.BLANKS[topic]){
+    items = cd.BLANKS[topic].map((b,i) => ({ idx:i, preview:`Q${i+1}: ${b.text.replace(/___/g,"___").slice(0,80)}` }));
+  } else if(taskType === "match" && cd.MATCHUPS[topic]){
+    items = cd.MATCHUPS[topic].map((m,i) => ({ idx:i, preview:`P${i+1}: ${m.term}` }));
   } else if(taskType === "written"){
-    items = WRITTEN.filter(w => w.topic === topic).map((w) => ({ idx: WRITTEN.indexOf(w), preview:`${w.id} (${w.marks}m): ${w.q.slice(0,70)}` }));
+    items = cd.WRITTEN.filter(w => w.topic === topic).map((w) => ({ idx: cd.WRITTEN.indexOf(w), preview:`${w.id} (${w.marks}m): ${w.q.slice(0,70)}` }));
   } else if(taskType === "drawing"){
-    const d = DRAWINGS.find(x => x.id === topic);
+    const d = cd.DRAWINGS.find(x => x.id === topic);
     if(d){ items = [{ idx:0, preview: d.title }]; }
   } else if(taskType === "flashcards"){
-    items = FLASHCARDS.filter(f => f.topic === topic).map((f) => ({ idx: FLASHCARDS.indexOf(f), preview: f.term }));
+    items = cd.FLASHCARDS.filter(f => f.topic === topic).map((f) => ({ idx: cd.FLASHCARDS.indexOf(f), preview: f.term }));
   }
 
   // Hide picker for task types where it doesn't apply (mocks, notes, etc.)
@@ -4703,15 +4751,45 @@ function toggleAllAssignQuestions(state){
   updateAssignQuestionsCount();
 }
 
-/* When the task type changes, swap the "topic" dropdown to fit the activity. */
+/* When the task type or selected classes change, repopulate the topic dropdown
+   so it reflects the COURSE of the class being assigned to, not the teacher's
+   own loaded course. */
 function refreshAssignTopicField(){
-  // Default release date to today (only if blank)
+  // Always force release date to today (assignments are unlocked immediately)
   const rel = document.getElementById("assign-release");
-  if(rel && !rel.value) rel.value = new Date().toISOString().slice(0,10);
+  if(rel) rel.value = new Date().toISOString().slice(0,10);
 
   const t = document.getElementById("assign-type").value;
   const topicSel = document.getElementById("assign-topic");
   const field = document.getElementById("assign-topic-field");
+
+  // Show a hint if the selected classes span different courses
+  const courseCode = _selectedAssignCourse();
+  let banner = document.getElementById("assign-course-banner");
+  if(!banner){
+    banner = document.createElement("div");
+    banner.id = "assign-course-banner";
+    banner.style.cssText = "font-size:.82rem;margin:.25rem 0;padding:.45rem .65rem;border-radius:6px;display:none";
+    field.parentNode.insertBefore(banner, field);
+  }
+  if(courseCode === "MIXED"){
+    banner.style.display = "block";
+    banner.style.background = "#fdeaea";
+    banner.style.color = "#a01818";
+    banner.textContent = "⚠️ The selected classes are on DIFFERENT courses. Please tick classes from one course at a time.";
+  } else if(courseCode){
+    banner.style.display = "block";
+    banner.style.background = "#e8f3ff";
+    banner.style.color = "var(--primary-dark, #0d47a1)";
+    banner.textContent = `Showing ${_COURSE_LABEL[courseCode]||courseCode} topics for the selected class${document.querySelectorAll('input[name="assign-class-cb"]:checked').length>1?'es':''}.`;
+  } else {
+    banner.style.display = "none";
+  }
+
+  // Pick the course data to populate from. Default to the teacher's course if no class is ticked yet.
+  const code = (courseCode && courseCode !== "MIXED") ? courseCode : ((user && user.course) || "R093");
+  const cd = _courseData(code);
+
   // Mocks ignore topic, hide the field
   if(t === "mock" || t === "mock2"){
     field.style.display = "none";
@@ -4720,13 +4798,9 @@ function refreshAssignTopicField(){
   }
   field.style.display = "";
   if(t === "drawing"){
-    topicSel.innerHTML = DRAWINGS.map(d => `<option value="${d.id}">${d.id} &mdash; ${d.title}</option>`).join("");
+    topicSel.innerHTML = cd.DRAWINGS.map(d => `<option value="${d.id}">${d.id} &mdash; ${d.title}</option>`).join("");
   } else {
-    topicSel.innerHTML = `
-      <option value="TA1">TA1 &mdash; The media industry</option>
-      <option value="TA2">TA2 &mdash; Factors influencing product design</option>
-      <option value="TA3">TA3 &mdash; Pre-production planning</option>
-      <option value="TA4">TA4 &mdash; Distribution considerations</option>`;
+    topicSel.innerHTML = Object.keys(cd.TOPICS).map(k => `<option value="${k}">${cd.TOPICS[k].title}</option>`).join("");
   }
 }
 
@@ -5595,65 +5669,13 @@ renderStudentHome = function(){
   }
 };
 
-/* ============================================================
-   TEACHER  —  extend marking + recent activity for drawings
-   ============================================================ */
-const _origRenderMarkList = renderMarkList;
-renderMarkList = function(){
-  _origRenderMarkList();
-  // Append drawings awaiting marking to the same list
-  const box = document.getElementById("t-mark-list");
-  const items = (teacherData.pendingDrawings || []);
-  if(!items.length) return;
-  // Remove the empty state if present
-  const empty = box.querySelector(".empty");
-  if(empty) empty.remove();
-  items.forEach(it=>{
-    const d = DRAWINGS.find(x=>x.id === it.drawingId);
-    if(!d) return;
-    const div = document.createElement("div");
-    div.className = "written-q";
-    const max = (d.checklist||[]).length;
-    div.innerHTML = `
-      <div class="meta">
-        <div><span class="q-num">${it.studentName||it.studentEmail} &middot; ${it.drawingId} (${d.kind})</span></div>
-        <span class="marks">${max} mark${max>1?'s':''}</span>
-      </div>
-      <div class="q-text">${d.title}</div>
-      <div style="font-size:.85rem;color:var(--muted);margin-bottom:.4rem">${d.prompt}</div>
-      <img class="draw-thumb" src="${it.imageData}" alt="${it.studentEmail}'s drawing">
-      <div class="row" style="margin-top:.6rem">
-        <input type="number" min="0" max="${max}" placeholder="Mark / ${max}" id="dm-${it.id}" style="width:100px;padding:.5rem .65rem;border:1.5px solid var(--border);border-radius:6px">
-        <input type="text" placeholder="Feedback (optional)" id="df-${it.id}" style="flex:1;padding:.5rem .65rem;border:1.5px solid var(--border);border-radius:6px">
-        <button class="btn btn-sm" onclick="markDrawing('${it.id}', ${max})">Save mark</button>
-      </div>
-    `;
-    box.appendChild(div);
-  });
-};
-async function markDrawing(submissionId, max){
-  const mark = document.getElementById(`dm-${submissionId}`).value;
-  const feedback = document.getElementById(`df-${submissionId}`).value;
-  if(mark === "" || mark < 0 || mark > max) return alert(`Mark must be between 0 and ${max}.`);
-  await api("markDrawing", { submissionId, mark:Number(mark), feedback, markedBy:user.email });
-  await loadTeacherData();
-  renderMarkList();
-  renderTeacherHome();
-}
+/* Marking tab removed — drawings are no longer marked through the teacher dashboard. */
+async function markDrawing(){ /* removed */ }
 
-/* Update teacher home stats to include drawings awaiting marking */
+/* Keep the analytics refresh hook that used to live in the marking wrapper. */
 const _origRenderTeacherHome = renderTeacherHome;
 renderTeacherHome = function(){
   _origRenderTeacherHome();
-  const stats = document.getElementById("t-stats");
-  const pendingDraw = (teacherData.pendingDrawings||[]).length;
-  if(pendingDraw && stats){
-    const extra = document.createElement("div");
-    extra.className = "stat ta2";
-    extra.innerHTML = `<div class="label">Drawings to mark</div><div class="value">${pendingDraw}</div>`;
-    stats.appendChild(extra);
-  }
-  // Refresh analytics view too
   if(typeof renderAnalytics === "function" && document.getElementById("t-an-class")) renderAnalytics();
 };
 
@@ -5795,29 +5817,54 @@ mockAPI.assignHomework = function(p){
 /* ============================================================
    TEACHER  —  QUESTION BANK
    ============================================================ */
-let _teacherQuestions = []; // cache of teacher-authored questions for current course
+let _teacherQuestions = []; // cache of teacher-authored questions for all courses
+let _tqCourse = null;       // course currently displayed in the Question Bank
+
+function _qbankCourse(){
+  // What course is the Question Bank currently filtered to?
+  const sel = document.getElementById("tq-filter-course");
+  if(sel && sel.value) return String(sel.value).toUpperCase();
+  return ((user && user.course) || "R093").toUpperCase();
+}
 
 async function loadTeacherQuestions(){
-  const courseCode = ((user && user.course) || "R093").toUpperCase();
-  const r = await api("listTeacherQuestions", { courseCode });
-  _teacherQuestions = (r && r.ok) ? (r.questions || []) : [];
+  // Pre-load all three courses' questions so course switches feel instant.
+  const all = [];
+  for(const code of ["R093","CT","CS"]){
+    try{
+      const r = await api("listTeacherQuestions", { courseCode: code });
+      if(r && r.ok && Array.isArray(r.questions)){
+        r.questions.forEach(q => { q.courseCode = q.courseCode || code; all.push(q); });
+      }
+    }catch(e){}
+  }
+  _teacherQuestions = all;
 }
 
 function getTeacherQuestionsFor(taskType, topic){
-  return _teacherQuestions.filter(q => q.taskType === taskType && q.topic === topic);
+  // Filter by the student's current course (which == applied course).
+  const studentCourse = ((user && user.course) || "R093").toUpperCase();
+  return _teacherQuestions.filter(q => q.taskType === taskType && q.topic === topic && String(q.courseCode||"R093").toUpperCase() === studentCourse);
+}
+function _teacherQuestionsForCourse(courseCode, taskType, topic){
+  return _teacherQuestions.filter(q => q.taskType === taskType && q.topic === topic && String(q.courseCode||"R093").toUpperCase() === String(courseCode||"R093").toUpperCase());
 }
 
 function renderQuestionBank(){
+  const courseSel = document.getElementById("tq-filter-course");
   const sel = document.getElementById("tq-filter-topic");
   const list = document.getElementById("tq-list");
   if(!sel || !list) return;
-  // Populate topic dropdown using current course's TOPICS
-  const topicKeys = Object.keys(TOPICS);
-  sel.innerHTML = topicKeys.map(t => `<option value="${t}">${TOPICS[t].title}</option>`).join("");
+  if(courseSel && !courseSel.onchange){ courseSel.onchange = renderQuestionBank; }
+  const courseCode = _qbankCourse();
+  const cd = _courseData(courseCode);
+  // Populate topic dropdown using SELECTED course's TOPICS
+  const topicKeys = Object.keys(cd.TOPICS);
+  sel.innerHTML = topicKeys.map(t => `<option value="${t}">${cd.TOPICS[t].title}</option>`).join("");
   sel.onchange = renderQuestionBank;
   const topic = sel.value || topicKeys[0];
   if(!topic){ list.innerHTML = '<div class="empty">No topic selected.</div>'; return; }
-  const mine = getTeacherQuestionsFor("quiz", topic);
+  const mine = _teacherQuestionsForCourse(courseCode, "quiz", topic);
   if(!mine.length){
     list.innerHTML = '<div class="empty">No teacher questions yet for this topic. Click "+ Add quiz question" to create one.</div>';
     return;
@@ -5847,15 +5894,18 @@ function renderQuestionBank(){
 }
 
 function openAddTeacherQuestionModal(){
-  const topicKeys = Object.keys(TOPICS);
+  const courseCode = _qbankCourse();
+  const cd = _courseData(courseCode);
+  const topicKeys = Object.keys(cd.TOPICS);
   const topicSel = document.getElementById("tq-filter-topic");
   const currentTopic = (topicSel && topicSel.value) || topicKeys[0];
-  const subs = (SUBTOPICS[currentTopic] || []);
+  const subs = (cd.SUBTOPICS[currentTopic] || []);
   document.getElementById("modal-body").innerHTML = `
-    <h3>Add a quiz question</h3>
+    <h3>Add a quiz question <span style="font-size:.78rem;color:var(--muted);font-weight:400">(${_COURSE_LABEL[courseCode]||courseCode})</span></h3>
+    <input type="hidden" id="tq-course" value="${courseCode}">
     <div class="field">
       <label>Topic</label>
-      <select id="tq-topic">${topicKeys.map(t => `<option value="${t}"${t===currentTopic?' selected':''}>${TOPICS[t].title}</option>`).join("")}</select>
+      <select id="tq-topic">${topicKeys.map(t => `<option value="${t}"${t===currentTopic?' selected':''}>${cd.TOPICS[t].title}</option>`).join("")}</select>
     </div>
     <div class="field">
       <label>Sub-topic <span style="color:var(--muted);font-weight:400">(for analytics)</span></label>
@@ -5887,10 +5937,12 @@ function openAddTeacherQuestionModal(){
       <button class="btn" onclick="saveTeacherQuestion()">Save question</button>
     </div>
   `;
-  // When topic changes, refresh sub-topic options
+  // When topic changes, refresh sub-topic options for the chosen course
   document.getElementById("tq-topic").addEventListener("change", () => {
+    const code = (document.getElementById("tq-course") || {}).value || "R093";
+    const cd2 = _courseData(code);
     const t = document.getElementById("tq-topic").value;
-    const ss = SUBTOPICS[t] || [];
+    const ss = cd2.SUBTOPICS[t] || [];
     document.getElementById("tq-sub").innerHTML = '<option value="">— none —</option>' + ss.map(s => `<option value="${s.id}">${s.id} &mdash; ${s.title}</option>`).join("");
   });
   document.getElementById("modal-back").classList.add("show");
@@ -5905,7 +5957,8 @@ async function saveTeacherQuestion(){
   const explain = document.getElementById("tq-explain").value.trim();
   if(!q || options.some(o => !o)){ alert("Please fill in the question and all four options."); return; }
   const data = { q, options, answer, explain };
-  const courseCode = ((user && user.course) || "R093").toUpperCase();
+  // Use the course that the bank is currently filtered to (set on the hidden tq-course input)
+  const courseCode = ((document.getElementById("tq-course") || {}).value || _qbankCourse() || "R093").toUpperCase();
   const r = await api("addTeacherQuestion", { courseCode, taskType:"quiz", topic, sub, data, createdBy: user.email });
   closeModal();
   if(r && r.ok){
@@ -5930,18 +5983,27 @@ async function deleteTeacherQuestion(id){
 /* ============================================================
    TEACHER  —  ANALYTICS  (per-question + sub-topic breakdown)
    ============================================================ */
-function activityOptions(){
+function activityOptions(courseCode){
+  const cd = _courseData(courseCode || "R093");
   const out = [];
-  ["TA1","TA2","TA3","TA4"].forEach(t => out.push({ value:`quiz:${t}`,   label:`Quiz · ${t}` }));
-  ["TA1","TA2","TA3","TA4"].forEach(t => out.push({ value:`blanks:${t}`, label:`Blanks · ${t}` }));
-  ["MOCK1","MOCK2","MOCK3","MOCK4","MOCK5","MOCK6"].forEach((m,i) => out.push({ value:`mock:${m}`, label:`Mock paper ${i+1}` }));
+  Object.keys(cd.TOPICS).forEach(t => out.push({ value:`quiz:${t}`,   label:`Quiz · ${t}` }));
+  Object.keys(cd.TOPICS).forEach(t => out.push({ value:`blanks:${t}`, label:`Blanks · ${t}` }));
+  Object.keys(cd.MOCKS_INDEX).forEach((m,i) => out.push({ value:`mock:${m}`, label:`Mock paper ${i+1}` }));
   return out;
 }
-function questionsFor(kind, key){
-  if(kind === "quiz")   return QUIZZES[key] || [];
-  if(kind === "blanks") return (BLANKS[key] || []).map(b => ({ q: b.text }));
-  if(kind === "mock")   return MOCKS_INDEX[key] || [];
+function questionsFor(kind, key, courseCode){
+  const cd = _courseData(courseCode || "R093");
+  if(kind === "quiz")   return cd.QUIZZES[key] || [];
+  if(kind === "blanks") return (cd.BLANKS[key] || []).map(b => ({ q: b.text }));
+  if(kind === "mock")   return cd.MOCKS_INDEX[key] || [];
   return [];
+}
+function subForCourse(courseCode, kind, key, idx){
+  const cd = _courseData(courseCode || "R093");
+  if(kind === "quiz")   return (cd.QUIZ_SUBS[key]||[])[idx];
+  if(kind === "blanks") return (cd.BLANK_SUBS[key]||[])[idx];
+  if(kind === "mock")   return (cd.MOCK_SUBS_INDEX[key] || [])[idx];
+  return null;
 }
 function attemptsFor(kind, key, classStudents){
   // Returns array of {studentEmail, attempts:[{qi,correct,sub}]}
@@ -5964,28 +6026,35 @@ function renderAnalytics(){
   const cSel = document.getElementById("t-an-class");
   const aSel = document.getElementById("t-an-activity");
   cSel.innerHTML = teacherData.classes.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
-  aSel.innerHTML = activityOptions().map(o => `<option value="${o.value}">${o.label}</option>`).join("");
+  // Activity options depend on the selected class's course
+  const refreshActivity = () => {
+    const cls = teacherData.classes.find(c => c.id === cSel.value);
+    const code = _classCourse(cls);
+    aSel.innerHTML = activityOptions(code).map(o => `<option value="${o.value}">${o.label}</option>`).join("");
+  };
+  refreshActivity();
   if(!teacherData.classes.length){
     document.getElementById("t-an-summary").innerHTML = '';
     document.getElementById("t-an-table").innerHTML = '<div class="empty">Create a class first to see analytics.</div>';
     document.getElementById("t-an-sub").innerHTML = '<div class="empty">Create a class first.</div>';
     return;
   }
-  cSel.onchange = drawAnalytics;
+  cSel.onchange = () => { refreshActivity(); drawAnalytics(); };
   aSel.onchange = drawAnalytics;
   drawAnalytics();
 }
 function drawAnalytics(){
   const cls = teacherData.classes.find(c => c.id === document.getElementById("t-an-class").value);
   if(!cls) return;
+  const courseCode = _classCourse(cls);
   const [kind, key] = document.getElementById("t-an-activity").value.split(":");
   const students = cls.students || [];
-  const qs = questionsFor(kind, key);
+  const qs = questionsFor(kind, key, courseCode);
   const records = attemptsFor(kind, key, students);
 
   // Per-question stats: { qi -> {tries, correct, sub} }
   const stats = {};
-  qs.forEach((_, qi) => { stats[qi] = { tries:0, correct:0, sub: subFor(kind === "mock" ? "mock" : kind, key, qi) || "—" }; });
+  qs.forEach((_, qi) => { stats[qi] = { tries:0, correct:0, sub: subForCourse(courseCode, kind === "mock" ? "mock" : kind, key, qi) || "—" }; });
   records.forEach(r => {
     r.attempts.forEach(a => {
       const s = stats[a.qi];
@@ -6045,9 +6114,11 @@ function drawAnalytics(){
   drawSubtopicAverages(cls);
 }
 function drawSubtopicAverages(cls){
-  // For each sub-topic across all TAs, compute % correct from all attempts by this class.
+  // Use THE CLASS's course (not the teacher's loaded one) so sub-topic labels match.
+  const courseCode = _classCourse(cls);
+  const cd = _courseData(courseCode);
   const tally = {}; // subId -> {tries, correct}
-  Object.values(SUBTOPICS).flat().forEach(s => { tally[s.id] = { tries:0, correct:0 }; });
+  Object.values(cd.SUBTOPICS).flat().forEach(s => { tally[s.id] = { tries:0, correct:0 }; });
 
   (teacherData.allProgress || []).forEach(p => {
     if(!cls.students.includes(p.email)) return;
@@ -6065,9 +6136,9 @@ function drawSubtopicAverages(cls){
 
   const out = document.getElementById("t-an-sub");
   let html = '';
-  ["TA1","TA2","TA3","TA4"].forEach(ta => {
-    const subs = SUBTOPICS[ta];
-    html += `<div style="margin-bottom:1rem"><div style="font-weight:700;color:var(--primary-dark);margin-bottom:.4rem">${TOPICS[ta].title}</div>`;
+  Object.keys(cd.TOPICS).forEach(ta => {
+    const subs = cd.SUBTOPICS[ta] || [];
+    html += `<div style="margin-bottom:1rem"><div style="font-weight:700;color:var(--primary-dark);margin-bottom:.4rem">${cd.TOPICS[ta].title}</div>`;
     subs.forEach(s => {
       const t = tally[s.id];
       const pct = t.tries ? Math.round(t.correct/t.tries*100) : null;
