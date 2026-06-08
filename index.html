@@ -3389,7 +3389,13 @@ function _classCourse(cls){
   if(!cls) return "R093";
   // 1) Course explicitly set on the class wins.
   if(cls.course) return String(cls.course).trim().toUpperCase();
-  // 2) Otherwise infer from the first student's course on file.
+  // 2) Class name is a strong signal — check it BEFORE student inference, because
+  //    students may have a stale default course ("R093") on their Users row.
+  const name = String(cls.name || "").toLowerCase();
+  if(name.includes("computer science") || name.includes("comp sci") || name.includes("compsci") || /\bcs\b/.test(name) || name.includes("j277") || name.includes("computing")) return "CS";
+  if(name.includes("digital media") || name.includes("digital-media") || name.includes("cambridge tech") || /\bct\b/.test(name)) return "CT";
+  if(name.includes("imedia") || name.includes("i media") || name.includes("creative imedia") || name.includes("r093")) return "R093";
+  // 3) Otherwise infer from the first student's course on file.
   for(const email of (cls.students || [])){
     const p = (teacherData.allProgress || []).find(x => String(x.email).toLowerCase() === String(email).toLowerCase());
     if(p && p.course) return String(p.course).trim().toUpperCase();
