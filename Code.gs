@@ -527,6 +527,7 @@ const ACTIONS = {
       email: e,
       name: (userIndex[e] && userIndex[e].name) || e,
       lastActive: (userIndex[e] && userIndex[e].lastActive) || "",
+      course: String((userIndex[e] && userIndex[e].course) || "R093").trim().toUpperCase(),
       quizzes: quizRows.filter(q => String(q.email).toLowerCase() === e).map(q => ({ topic:q.topic, score:Number(q.score), total:Number(q.total), timestamp:String(q.timestamp), taskType: q.taskType || "quiz", details: (function(s){ try { return s ? JSON.parse(s) : []; } catch(_){ return []; } })(q.details) })),
       mocks: mockRows.filter(m => String(m.email).toLowerCase() === e).map(m => ({ mockId: m.mockId || "MOCK1", score:Number(m.score), total:Number(m.total), timestamp:String(m.timestamp), details: (function(s){ try { return s ? JSON.parse(s) : []; } catch(_){ return []; } })(m.details) }))
     }));
