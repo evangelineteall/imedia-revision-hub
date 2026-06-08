@@ -448,7 +448,7 @@
     <section class="panel student-only" id="s-homework">
       <div class="card">
         <h2>Homework</h2>
-        <p class="lead">Everything your teacher has assigned. Click any unlocked task to start it.</p>
+        <p class="lead">Everything your teacher has assigned. Click any task to start it.</p>
         <div id="s-hw-stats" style="margin-bottom:.85rem"></div>
         <div id="s-hw-list"><div class="empty">Loading&hellip;</div></div>
       </div>
@@ -676,15 +676,11 @@
             <label>Note for students <span style="color:var(--muted);font-weight:400">(optional)</span></label>
             <textarea id="assign-note" placeholder="e.g. Focus on the job roles section." style="min-height:60px"></textarea>
           </div>
-          <div class="row" style="gap:.6rem;flex-wrap:wrap">
-            <div class="field" style="flex:1;min-width:140px">
-              <label>Release date</label>
-              <input type="date" id="assign-release">
-            </div>
-            <div class="field" style="flex:1;min-width:140px">
-              <label>Due date</label>
-              <input type="date" id="assign-due" required>
-            </div>
+          <div class="field">
+            <label>Due date</label>
+            <input type="date" id="assign-due" required>
+            <!-- Hidden release-date input retained for backwards compatibility; always set to today so assignments are available immediately. -->
+            <input type="hidden" id="assign-release">
           </div>
           <button type="submit" class="btn btn-block">Assign homework</button>
         </form>
@@ -2002,7 +1998,7 @@ const CT_QUIZZES = {
     { q:"Filming an identifiable person for COMMERCIAL use normally requires&hellip;", options:["No permission","A model release form","Only the photographer's consent","A copyright fee paid to the camera maker"], answer:1, explain:"Commercial use of identifiable people typically requires a signed model release form." },
     { q:"A LOCATION RELEASE is a document that&hellip;", options:["Pays the cast","Permits filming at a private location","Sets the call time","Lists camera equipment"], answer:1, explain:"Location releases grant permission to film at a specific (often privately-owned) location." },
     { q:"Which UK body classifies films and video content?", options:["BBFC","Ofcom","ASA","IPSO"], answer:0, explain:"The BBFC (British Board of Film Classification) age-rates films and other video content." },
-    { q:"Which UK body regulates broadcasting and online video standards?", options:["BBFC","Ofcom","IPSO","ICO"], answer:1, explain:"Ofcom regulates broadcasting, telecoms and online video services in the UK." },
+    { q:"Which UK body regulates broadcasting and online video standards?", options:["BBFC","Ofcom","ASA","IPSO"], answer:1, explain:"Ofcom regulates broadcasting, telecoms and online video services in the UK." },
     { q:"A SHOT LIST contains&hellip;", options:["Brand colours","Every shot needed for the production, with notes","Hosting setup","Marketing budget"], answer:1, explain:"A shot list catalogues every individual shot the production needs, often with lens, framing and notes." },
     { q:"A CALL SHEET typically includes&hellip;", options:["Mood references only","Times, locations, contacts and call times for cast/crew","Final exports","Editing software list"], answer:1, explain:"Call sheets give the daily plan of who needs to be where, when, and how to contact them." },
     { q:"Keeping production ARCHIVES helps a producer to&hellip;", options:["Avoid health and safety","Reuse assets, reference past work and protect IP","Skip risk assessments","Reduce all costs to zero"], answer:1, explain:"Well-kept archives let producers re-use assets, reference past work and prove ownership of original IP." },
@@ -2091,14 +2087,6 @@ const CT_FLASHCARDS = [
   { topic:"U1", term:"RAJAR", def:"UK body that measures radio audiences." },
   { topic:"U1", term:"Codes and conventions", def:"Recognisable stylistic features audiences expect of a genre." },
   { topic:"U1", term:"Representation", def:"How groups, places or ideas are portrayed in media." },
-  { topic:"U2", term:"Mood board", def:"Collects images, colours and fonts to capture style." },
-  { topic:"U2", term:"Storyboard", def:"Plans video shots with camera angles and timings." },
-  { topic:"U2", term:"Wireframe", def:"Low-fidelity layout sketch for a screen or page." },
-  { topic:"U2", term:"Work plan", def:"Lists tasks, deadlines, resources and responsibilities." },
-  { topic:"U2", term:"Production schedule", def:"Tasks mapped to specific dates and times." },
-  { topic:"U2", term:"Model release", def:"Permission form for using someone's image commercially." },
-  { topic:"U2", term:"BBFC", def:"UK body that age-rates films and video content." },
-  { topic:"U2", term:"Ofcom", def:"UK regulator for broadcasting, telecoms and online video." },
   { topic:"U1", term:"Cultivation theory", def:"Long-term media exposure shapes the audience's worldview." },
   { topic:"U1", term:"Active audience", def:"Theory that audiences actively select and interpret media." },
   { topic:"U1", term:"Mainstream audience", def:"A broad, general target audience for a media product." },
@@ -2107,6 +2095,14 @@ const CT_FLASHCARDS = [
   { topic:"U1", term:"Geographic profiling", def:"Audience segmentation by location and region." },
   { topic:"U1", term:"Cross-media", def:"Distribution of related content across multiple platforms." },
   { topic:"U1", term:"Tertiary research", def:"Summaries and analyses of secondary research." },
+  { topic:"U2", term:"Mood board", def:"Collects images, colours and fonts to capture style." },
+  { topic:"U2", term:"Storyboard", def:"Plans video shots with camera angles and timings." },
+  { topic:"U2", term:"Wireframe", def:"Low-fidelity layout sketch for a screen or page." },
+  { topic:"U2", term:"Work plan", def:"Lists tasks, deadlines, resources and responsibilities." },
+  { topic:"U2", term:"Production schedule", def:"Tasks mapped to specific dates and times." },
+  { topic:"U2", term:"Model release", def:"Permission form for using someone's image commercially." },
+  { topic:"U2", term:"BBFC", def:"UK body that age-rates films and video content." },
+  { topic:"U2", term:"Ofcom", def:"UK regulator for broadcasting, telecoms and online video." },
   { topic:"U2", term:"Treatment", def:"Short prose summary of a planned media product." },
   { topic:"U2", term:"Asset list", def:"Catalogue of every individual media asset the product needs." },
   { topic:"U2", term:"Shot list", def:"Detailed list of every shot required for the production." },
@@ -3786,8 +3782,6 @@ function renderStudentHome(){
     const due = new Date(a.dueDate);
     const now = new Date();
     const overdue = due < now;
-    const release = a.releaseDate || todayStr;
-    const locked = release > todayStr;
     const taskLabel = { quiz:"Topic quiz", written:"Written exam Qs", flashcards:"Flashcards", mock:"Mock paper 1", mock2:"Mock paper 2", mock3:"Mock paper 3", mock4:"Mock paper 4", mock5:"Mock paper 5", mock6:"Mock paper 6", match:"Match the keyword", blanks:"Fill in the blanks", drawing:"Drawing task" }[a.taskType] || a.taskType;
     const div = document.createElement("div");
     div.className = "q-block";
@@ -3797,22 +3791,12 @@ function renderStudentHome(){
     div.style.flexWrap = "wrap";
     div.style.gap = ".5rem";
     div.style.transition = "transform .15s, box-shadow .15s, border-color .15s";
-    if(locked){
-      div.style.borderLeft = "4px solid var(--muted)";
-      div.style.opacity = ".7";
-      div.style.cursor = "not-allowed";
-      div.title = `Unlocks on ${new Date(release).toLocaleDateString("en-GB")}`;
-    } else {
-      div.style.borderLeft = "4px solid var(--accent)";
-      div.style.cursor = "pointer";
-      div.addEventListener("mouseover", ()=>{ div.style.transform = "translateY(-2px)"; div.style.boxShadow = "0 4px 14px rgba(13,71,161,.10)"; });
-      div.addEventListener("mouseout", ()=>{ div.style.transform = ""; div.style.boxShadow = ""; });
-      div.addEventListener("click", ()=> goToAssignment(a.taskType, a.topic, a.questionIndexes));
-    }
-    const cta = locked
-      ? `<span class="badge upcoming" style="background:var(--bg);color:var(--muted)">🔒 LOCKED</span>
-         <div style="color:var(--muted);font-size:.78rem;margin-top:.35rem">Unlocks ${new Date(release).toLocaleDateString("en-GB")}</div>`
-      : `<span class="badge ${overdue?'due':'upcoming'}">${overdue?'OVERDUE':'DUE SOON'}</span>
+    div.style.borderLeft = "4px solid var(--accent)";
+    div.style.cursor = "pointer";
+    div.addEventListener("mouseover", ()=>{ div.style.transform = "translateY(-2px)"; div.style.boxShadow = "0 4px 14px rgba(13,71,161,.10)"; });
+    div.addEventListener("mouseout", ()=>{ div.style.transform = ""; div.style.boxShadow = ""; });
+    div.addEventListener("click", ()=> goToAssignment(a.taskType, a.topic, a.questionIndexes));
+    const cta = `<span class="badge ${overdue?'due':'upcoming'}">${overdue?'OVERDUE':'DUE SOON'}</span>
          <div style="color:var(--primary);font-size:.78rem;margin-top:.35rem;font-weight:600">Start &rarr;</div>`;
     div.innerHTML = `
       <div>
@@ -4575,18 +4559,14 @@ function renderAssignList(){
     div.style.alignItems = "center";
     div.style.flexWrap = "wrap";
     div.style.gap = ".5rem";
-    const todayStr = new Date().toISOString().slice(0,10);
-    const release = a.releaseDate || todayStr;
-    const locked = release > todayStr;
-    const releaseTxt = locked ? ` &middot; <span style="color:var(--muted)">🔒 unlocks ${new Date(release).toLocaleDateString("en-GB")}</span>` : "";
     div.innerHTML = `
       <div style="flex:1;min-width:200px">
         <div class="q-num">${(cls?cls.name:'Class')} &middot; ${a.taskType.toUpperCase()} &middot; ${a.topic}</div>
-        <div style="color:var(--muted);font-size:.85rem;margin-top:.2rem">Due ${due.toLocaleDateString("en-GB")}${releaseTxt}</div>
+        <div style="color:var(--muted);font-size:.85rem;margin-top:.2rem">Due ${due.toLocaleDateString("en-GB")}</div>
         ${a.note ? `<div style="margin-top:.4rem;background:#fef6e6;border-left:3px solid var(--accent);padding:.4rem .65rem;border-radius:6px;font-size:.85rem">📝 ${a.note}</div>` : ""}
       </div>
       <div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap">
-        <span class="badge ${overdue?'due':'upcoming'}">${locked ? 'LOCKED' : (overdue?'OVERDUE':'OPEN')}</span>
+        <span class="badge ${overdue?'due':'upcoming'}">${overdue?'OVERDUE':'OPEN'}</span>
         <button class="btn btn-sm btn-danger" data-del="${a.id}" title="Delete this homework">🗑 Delete</button>
       </div>
     `;
@@ -4619,10 +4599,9 @@ document.getElementById("assign-form").addEventListener("submit", async e=>{
   const taskType = document.getElementById("assign-type").value;
   const topic = document.getElementById("assign-topic").value;
   const dueDate = document.getElementById("assign-due").value;
-  const releaseDate = document.getElementById("assign-release").value || new Date().toISOString().slice(0,10);
+  const releaseDate = new Date().toISOString().slice(0,10); // assignments are always live immediately
   const note = document.getElementById("assign-note").value.trim();
   if(!selectedClassIds.length) return alert("Please tick at least one class.");
-  if(releaseDate > dueDate) return alert("Release date can't be after the due date.");
 
   // Question-level selection — leave blank if all questions are ticked (means "use all")
   const allCbs = document.querySelectorAll('input[name="assign-q-cb"]');
@@ -5529,21 +5508,15 @@ function renderHomeworkPage(){
     return;
   }
 
-  // Sort: open due-soon first, then locked, then overdue
-  all.sort((a,b) => {
-    const aOver = new Date(a.dueDate) < new Date();
-    const bOver = new Date(b.dueDate) < new Date();
-    return new Date(a.dueDate) - new Date(b.dueDate);
-  });
+  // Sort by due date
+  all.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-  let openCount = 0, lockedCount = 0, overdueCount = 0;
+  let openCount = 0, overdueCount = 0;
   list.innerHTML = '';
   all.forEach(a => {
     const due = new Date(a.dueDate);
     const overdue = due < new Date();
-    const release = a.releaseDate || todayStr;
-    const locked = release > todayStr;
-    if(locked) lockedCount++; else if(overdue) overdueCount++; else openCount++;
+    if(overdue) overdueCount++; else openCount++;
     const label = labelMap[a.taskType] || a.taskType;
     const div = document.createElement("div");
     div.className = "q-block";
@@ -5553,22 +5526,12 @@ function renderHomeworkPage(){
     div.style.flexWrap = "wrap";
     div.style.gap = ".5rem";
     div.style.transition = "transform .15s, box-shadow .15s";
-    if(locked){
-      div.style.borderLeft = "4px solid var(--muted)";
-      div.style.opacity = ".7";
-      div.style.cursor = "not-allowed";
-      div.title = `Unlocks on ${new Date(release).toLocaleDateString("en-GB")}`;
-    } else {
-      div.style.borderLeft = `4px solid ${overdue ? 'var(--error)' : 'var(--accent)'}`;
-      div.style.cursor = "pointer";
-      div.addEventListener("mouseover", ()=>{ div.style.transform = "translateY(-2px)"; div.style.boxShadow = "0 4px 14px rgba(13,71,161,.10)"; });
-      div.addEventListener("mouseout", ()=>{ div.style.transform = ""; div.style.boxShadow = ""; });
-      div.addEventListener("click", ()=> goToAssignment(a.taskType, a.topic, a.questionIndexes));
-    }
-    const cta = locked
-      ? `<span class="badge upcoming" style="background:var(--bg);color:var(--muted)">🔒 LOCKED</span>
-         <div style="color:var(--muted);font-size:.78rem;margin-top:.35rem">Unlocks ${new Date(release).toLocaleDateString("en-GB")}</div>`
-      : `<span class="badge ${overdue?'due':'upcoming'}">${overdue?'OVERDUE':'OPEN'}</span>
+    div.style.borderLeft = `4px solid ${overdue ? 'var(--error)' : 'var(--accent)'}`;
+    div.style.cursor = "pointer";
+    div.addEventListener("mouseover", ()=>{ div.style.transform = "translateY(-2px)"; div.style.boxShadow = "0 4px 14px rgba(13,71,161,.10)"; });
+    div.addEventListener("mouseout", ()=>{ div.style.transform = ""; div.style.boxShadow = ""; });
+    div.addEventListener("click", ()=> goToAssignment(a.taskType, a.topic, a.questionIndexes));
+    const cta = `<span class="badge ${overdue?'due':'upcoming'}">${overdue?'OVERDUE':'OPEN'}</span>
          <div style="color:var(--primary);font-size:.78rem;margin-top:.35rem;font-weight:600">Start &rarr;</div>`;
     div.innerHTML = `
       <div>
@@ -5586,7 +5549,6 @@ function renderHomeworkPage(){
     <div class="card-row">
       <div class="stat ta1"><div class="label">Open</div><div class="value">${openCount}</div></div>
       <div class="stat ta2"><div class="label">Overdue</div><div class="value">${overdueCount}</div></div>
-      <div class="stat ta3"><div class="label">Locked</div><div class="value">${lockedCount}</div></div>
       <div class="stat ta4"><div class="label">Total set</div><div class="value">${all.length}</div></div>
     </div>`;
 }
