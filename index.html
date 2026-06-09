@@ -3948,6 +3948,7 @@ function startQuiz(topic, questionIndexes){
     options: (tq.data && tq.data.options) || ["","","",""],
     answer: (tq.data && typeof tq.data.answer === "number") ? tq.data.answer : 0,
     explain: (tq.data && tq.data.explain) || "",
+    image: (tq.data && tq.data.image) || "",
     _teacher: true,
     _teacherSub: tq.sub || null
   }));
@@ -3965,6 +3966,7 @@ function startQuiz(topic, questionIndexes){
   data.forEach((it, idx)=>{
     html += `<div class="q-block" data-q="${idx}">
       <div class="q-num">Question ${idx+1} of ${data.length}</div>
+      ${it.image ? `<img src="${it.image}" alt="Question image" style="max-width:100%;max-height:340px;border:1px solid var(--border);border-radius:8px;display:block;margin:.4rem 0;background:#fff">` : ""}
       <div class="q-text">${it.q}</div>
       <div class="q-options">${it.options.map((o,oi)=>`<button class="q-option" data-opt="${oi}">${o}</button>`).join("")}</div>
       <div class="feedback"></div>
@@ -5958,6 +5960,7 @@ function renderQuestionBank(){
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.6rem;flex-wrap:wrap">
         <div style="flex:1;min-width:240px">
           <div class="q-num">${q.sub || topic} &middot; added by ${q.createdBy || 'you'}</div>
+          ${d.image ? `<img src="${d.image}" alt="Question image" style="max-width:240px;max-height:160px;border:1px solid var(--border);border-radius:6px;display:block;margin:.4rem 0;background:#fff">` : ""}
           <div class="q-text" style="margin:.3rem 0">${(d.q || "(no question text)")}</div>
           <div style="font-size:.85rem;color:var(--muted)">
             ${(d.options || []).map((o,i)=>`${i+1}. ${o}${i===d.answer?' <strong style="color:var(--success)">✓</strong>':''}`).join(" &middot; ")}
@@ -5992,6 +5995,18 @@ function openAddTeacherQuestionModal(){
     <div class="field">
       <label>Question</label>
       <textarea id="tq-q" placeholder="e.g. Which sector covers TV, film and radio?" style="min-height:70px"></textarea>
+    </div>
+    <div class="field">
+      <label>Image <span style="color:var(--muted);font-weight:400">(optional — flowchart symbol, code screenshot, diagram…)</span></label>
+      <input type="file" id="tq-image-file" accept="image/*" onchange="_handleTQImageChange(event)" style="font-size:.85rem">
+      <div id="tq-image-preview" style="margin-top:.5rem;display:none">
+        <img id="tq-image-preview-img" style="max-width:100%;max-height:240px;border:1px solid var(--border);border-radius:6px;background:#fff">
+        <div style="margin-top:.3rem">
+          <button type="button" class="btn btn-sm btn-secondary" onclick="_clearTQImage()" style="font-size:.75rem">Remove image</button>
+          <span id="tq-image-size" style="font-size:.75rem;color:var(--muted);margin-left:.4rem"></span>
+        </div>
+      </div>
+      <input type="hidden" id="tq-image-data" value="">
     </div>
     <div class="field"><label>Option A</label><input type="text" id="tq-opt-0"></div>
     <div class="field"><label>Option B</label><input type="text" id="tq-opt-1"></div>
@@ -6033,10 +6048,18 @@ async function saveTeacherQuestion(){
   const options = [0,1,2,3].map(i => document.getElementById("tq-opt-"+i).value.trim());
   const answer = parseInt(document.getElementById("tq-answer").value, 10);
   const explain = document.getElementById("tq-explain").value.trim();
+  const image = (document.getElementById("tq-image-data") || {}).value || "";
   if(!q || options.some(o => !o)){ alert("Please fill in the question and all four options."); return; }
   const data = { q, options, answer, explain };
+  if(image) data.image = image;
   // Use the course that the bank is currently filtered to (set on the hidden tq-course input)
   const courseCode = ((document.getElementById("tq-course") || {}).value || _qbankCourse() || "R093").toUpperCase();
+  // Safety check: warn if data payload is too big for a Google Sheets cell (limit ~50k chars).
+  const payloadSize = JSON.stringify(data).length;
+  if(payloadSize > 48000){
+    alert("That image is still too large to store (" + Math.round(payloadSize/1024) + " KB). Try a smaller image, or screenshot at a lower resolution.");
+    return;
+  }
   const r = await api("addTeacherQuestion", { courseCode, taskType:"quiz", topic, sub, data, createdBy: user.email });
   closeModal();
   if(r && r.ok){
@@ -6044,6 +6067,74 @@ async function saveTeacherQuestion(){
     renderQuestionBank();
   } else {
     alert((r && r.error) || "Could not save question.");
+  }
+}
+
+/* ============================================================
+   Image helpers for the Add-Question modal — auto-resize and
+   compress so the result fits in a Google Sheets cell.
+   ============================================================ */
+function _clearTQImage(){
+  const hidden = document.getElementById("tq-image-data");
+  const file = document.getElementById("tq-image-file");
+  const preview = document.getElementById("tq-image-preview");
+  if(hidden) hidden.value = "";
+  if(file) file.value = "";
+  if(preview) preview.style.display = "none";
+}
+async function _compressImage(file, maxDim, quality){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if(w > maxDim || h > maxDim){
+          const scale = Math.min(maxDim/w, maxDim/h);
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        // White background under transparency (so flowchart PNGs don't go black on JPEG)
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0,0,w,h);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = () => reject(new Error("Could not load image."));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error("Could not read file."));
+    reader.readAsDataURL(file);
+  });
+}
+async function _handleTQImageChange(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  if(file.size > 10 * 1024 * 1024){
+    alert("That image is huge (" + Math.round(file.size/1024/1024) + " MB). Please pick something under 10 MB and we'll resize it.");
+    e.target.value = "";
+    return;
+  }
+  try{
+    // Try progressively smaller sizes until we're comfortably under the cell limit.
+    let dataUrl = null;
+    for(const [dim, q] of [[800, 0.75],[700, 0.7],[600, 0.65],[500, 0.6],[400, 0.55]]){
+      dataUrl = await _compressImage(file, dim, q);
+      if(dataUrl.length <= 46000) break;
+    }
+    if(!dataUrl || dataUrl.length > 46000){
+      alert("Could not shrink that image enough — try a simpler image (e.g. a smaller screenshot).");
+      return;
+    }
+    document.getElementById("tq-image-data").value = dataUrl;
+    document.getElementById("tq-image-preview-img").src = dataUrl;
+    document.getElementById("tq-image-preview").style.display = "";
+    document.getElementById("tq-image-size").textContent = "≈ " + Math.round(dataUrl.length * 0.75 / 1024) + " KB";
+  } catch(err){
+    alert("Image upload failed: " + (err && err.message ? err.message : err));
   }
 }
 
