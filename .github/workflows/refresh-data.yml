@@ -1,0 +1,40 @@
+name: Refresh live data
+
+on:
+  schedule:
+    # Every Monday at 06:00 UTC. Change the cron line if you'd like a
+    # different day/time - the site always shows whatever the last
+    # successful run produced.
+    - cron: '0 6 * * 1'
+  workflow_dispatch: {}   # lets you trigger a run manually from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - name: Fetch and parse the Arbor exports
+        run: npm run fetch-data
+        env:
+          ARBOR_BEHAVIOUR_URL: ${{ secrets.ARBOR_BEHAVIOUR_URL }}
+          ARBOR_LATE_URL: ${{ secrets.ARBOR_LATE_URL }}
+          ARBOR_DETENTIONS_URL: ${{ secrets.ARBOR_DETENTIONS_URL }}
+          ARBOR_SUSPENSIONS_URL: ${{ secrets.ARBOR_SUSPENSIONS_URL }}
+
+      - name: Commit updated data, if it changed
+        run: |
+          git config user.name "rts-dashboard-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/live.json
+          git diff --cached --quiet || git commit -m "Refresh live data ($(date -u +%Y-%m-%d))"
+          git push
