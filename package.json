@@ -1,0 +1,11 @@
+{
+  "name": "rts-behaviour-dashboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "fetch-data": "node scripts/fetch-data.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}

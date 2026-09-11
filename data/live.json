@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-09-07T18:00:00.000Z",
+  "note": "Bootstrap snapshot from the 1-7 Sept 2026 export, checked in so the site has real data to show before the first scheduled Action run. The next successful run overwrites this file.",
+  "weekLabels": ["1 Sep", "2 Sep", "3 Sep", "4 Sep", "5 Sep", "6 Sep", "7 Sep"],
+  "posWeek": [0, 0, 23, 1533, 0, 0, 661],
+  "negWeek": [0, 0, 0, 56, 0, 0, 103],
+  "neuWeek": [0, 0, 13, 6, 0, 0, 38],
+  "categoriesWeek": [
+    {"label": "Key 5", "pos": 1984, "neg": 46, "neu": 0},
+    {"label": "Academic", "pos": 207, "neg": 13, "neu": 0},
+    {"label": "Conduct", "pos": 0, "neg": 92, "neu": 28},
+    {"label": "Attendance", "pos": 0, "neg": 2, "neu": 27},
+    {"label": "6th Form", "pos": 26, "neg": 0, "neu": 0},
+    {"label": "Uniform & Equipment", "pos": 0, "neg": 6, "neu": 2}
+  ],
+  "incidentTypesWeek": [
+    {"name": "Key 5 Learner", "count": 1122, "type": "good"},
+    {"name": "Key 5 Ambitious", "count": 368, "type": "good"},
+    {"name": "Key 5 Harmonious", "count": 347, "type": "good"},
+    {"name": "Excellent effort", "count": 187, "type": "good"},
+    {"name": "Key 5 Polite", "count": 125, "type": "good"},
+    {"name": "Late to lesson", "count": 28, "type": "critical"}
+  ],
+  "studentsWeekRaw": [
+    {"name": "Ryan Imani", "total": 11, "pos": 3, "neg": 8, "neu": 0, "last": "Exited from lessons"},
+    {"name": "Autumn Carlisle", "total": 10, "pos": 2, "neg": 8, "neu": 0, "last": "Failed Staff Detention"},
+    {"name": "Jasmin Pu", "total": 9, "pos": 8, "neg": 0, "neu": 1, "last": "Key 5 Learner"},
+    {"name": "Skyler Martin", "total": 9, "pos": 8, "neg": 0, "neu": 1, "last": "Key 5 Learner"},
+    {"name": "Noor-Fatimah Ali", "total": 8, "pos": 8, "neg": 0, "neu": 0, "last": "Key 5 Learner"},
+    {"name": "Erin Powell", "total": 8, "pos": 8, "neg": 0, "neu": 0, "last": "Key 5 Learner"},
+    {"name": "Oliver Tosney", "total": 8, "pos": 8, "neg": 0, "neu": 0, "last": "Key 5 Ambitious"},
+    {"name": "Louis Hudson", "total": 8, "pos": 8, "neg": 0, "neu": 0, "last": "Key 5 Ambitious"},
+    {"name": "Christopher Hadland", "total": 7, "pos": 1, "neg": 4, "neu": 2, "last": "Failed Staff Detention"},
+    {"name": "Darrenlee Orme", "total": 6, "pos": 1, "neg": 5, "neu": 0, "last": "Key 5 Verbal abuse"},
+    {"name": "Ruby Davis-Woolmer", "total": 6, "pos": 2, "neg": 4, "neu": 0, "last": "Failed Staff Detention"},
+    {"name": "Macaulay Green", "total": 5, "pos": 1, "neg": 3, "neu": 1, "last": "Reflection placement"},
+    {"name": "Oliver Squires", "total": 4, "pos": 0, "neg": 4, "neu": 0, "last": "Late to lesson"},
+    {"name": "Tommy-Lee Kearsley", "total": 4, "pos": 0, "neg": 4, "neu": 0, "last": "Failed Staff Detention"}
+  ],
+  "REAL_TOTAL_INCIDENTS": 2433,
+  "REAL_RESOLVED_PCT": 94,
+  "late": {"rowCount": 0, "rows": []},
+  "detentions": {"rowCount": 0, "rows": []},
+  "suspensions": {"rowCount": 0, "rows": []}
+}

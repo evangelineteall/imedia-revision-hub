@@ -1,0 +1,266 @@
+[
+  {
+    "incident": "Key 5 Polite",
+    "type": "Positive",
+    "severity": 5,
+    "category": "Key 5"
+  },
+  {
+    "incident": "Key 5 Attendance superstar",
+    "type": "Positive",
+    "severity": 5,
+    "category": "Key 5"
+  },
+  {
+    "incident": "Key 5 Harmonious",
+    "type": "Positive",
+    "severity": 5,
+    "category": "Key 5"
+  },
+  {
+    "incident": "Key 5 Learner",
+    "type": "Positive",
+    "severity": 5,
+    "category": "Key 5"
+  },
+  {
+    "incident": "Key 5 Ambitious",
+    "type": "Positive",
+    "severity": 5,
+    "category": "Key 5"
+  },
+  {
+    "incident": "Key 5 Resilient",
+    "type": "Positive",
+    "severity": 5,
+    "category": "Key 5"
+  },
+  {
+    "incident": "Excellent Homework",
+    "type": "Positive",
+    "severity": 4,
+    "category": "Academic"
+  },
+  {
+    "incident": "Excellent effort",
+    "type": "Positive",
+    "severity": 1,
+    "category": "Academic"
+  },
+  {
+    "incident": "Outstanding work",
+    "type": "Positive",
+    "severity": 1,
+    "category": "Academic"
+  },
+  {
+    "incident": "6th Form Positive",
+    "type": "Positive",
+    "severity": 1,
+    "category": "6th Form"
+  },
+  {
+    "incident": "Missing Uniform",
+    "type": "Neutral",
+    "severity": 0,
+    "category": "Uniform & Equipment"
+  },
+  {
+    "incident": "Bullying",
+    "type": "Neutral",
+    "severity": 0,
+    "category": "Conduct"
+  },
+  {
+    "incident": "Reflection placement",
+    "type": "Neutral",
+    "severity": 0,
+    "category": "Conduct"
+  },
+  {
+    "incident": "Mobile Phone confiscated",
+    "type": "Neutral",
+    "severity": 0,
+    "category": "Conduct"
+  },
+  {
+    "incident": "Inappropriate use of AI",
+    "type": "Neutral",
+    "severity": 0,
+    "category": "Academic"
+  },
+  {
+    "incident": "Failed to attend homework DT",
+    "type": "Neutral",
+    "severity": 0,
+    "category": "Academic"
+  },
+  {
+    "incident": "2nd Late to School",
+    "type": "Neutral",
+    "severity": 0,
+    "category": "Attendance"
+  },
+  {
+    "incident": "6th Form Negative",
+    "type": "Negative",
+    "severity": 1,
+    "category": "6th Form"
+  },
+  {
+    "incident": "Late to School",
+    "type": "Negative",
+    "severity": 1,
+    "category": "Attendance"
+  },
+  {
+    "incident": "Missed homework",
+    "type": "Negative",
+    "severity": 1,
+    "category": "Academic"
+  },
+  {
+    "incident": "Damage/vandalism",
+    "type": "Negative",
+    "severity": 1,
+    "category": "Conduct"
+  },
+  {
+    "incident": "Poor Rate of Work",
+    "type": "Negative",
+    "severity": 1,
+    "category": "Academic"
+  },
+  {
+    "incident": "Missed Deadline (Coursework/NEA)",
+    "type": "Negative",
+    "severity": 1,
+    "category": "Academic"
+  },
+  {
+    "incident": "Missed KS4 Homework (Core subjects only)",
+    "type": "Negative",
+    "severity": 1,
+    "category": "Academic"
+  },
+  {
+    "incident": "6th Form Missed Deadline",
+    "type": "Negative",
+    "severity": 1,
+    "category": "6th Form"
+  },
+  {
+    "incident": "Failed Science Homework Detention",
+    "type": "Negative",
+    "severity": 2,
+    "category": "Academic"
+  },
+  {
+    "incident": "Failed Maths Homework Detentiom",
+    "type": "Negative",
+    "severity": 2,
+    "category": "Academic"
+  },
+  {
+    "incident": "Failed HOD Homework detention",
+    "type": "Negative",
+    "severity": 2,
+    "category": "Academic"
+  },
+  {
+    "incident": "Failed English Homework Detention",
+    "type": "Negative",
+    "severity": 2,
+    "category": "Academic"
+  },
+  {
+    "incident": "Truancy with defiance",
+    "type": "Negative",
+    "severity": 2,
+    "category": "Conduct"
+  },
+  {
+    "incident": "MAJOR INCIDENT",
+    "type": "Negative",
+    "severity": 2,
+    "category": "Conduct"
+  },
+  {
+    "incident": "Alternative School DT",
+    "type": "Negative",
+    "severity": 2,
+    "category": "Conduct"
+  },
+  {
+    "incident": "Exited from lessons",
+    "type": "Negative",
+    "severity": 3,
+    "category": "Conduct"
+  },
+  {
+    "incident": "Persistent PE kit",
+    "type": "Negative",
+    "severity": 3,
+    "category": "Uniform & Equipment"
+  },
+  {
+    "incident": "Failed Staff Detention",
+    "type": "Negative",
+    "severity": 3,
+    "category": "Conduct"
+  },
+  {
+    "incident": "Extreme Defiance During Unstructured Time",
+    "type": "Negative",
+    "severity": 3,
+    "category": "Conduct"
+  },
+  {
+    "incident": "Failed School Detention",
+    "type": "Negative",
+    "severity": 4,
+    "category": "Conduct"
+  },
+  {
+    "incident": "Failed alternative school detention",
+    "type": "Negative",
+    "severity": 4,
+    "category": "Conduct"
+  },
+  {
+    "incident": "Key 5 PE Kit Issue",
+    "type": "Negative",
+    "severity": 5,
+    "category": "Key 5"
+  },
+  {
+    "incident": "Key 5 Verbal abuse",
+    "type": "Negative",
+    "severity": 5,
+    "category": "Key 5"
+  },
+  {
+    "incident": "Late to lesson",
+    "type": "Negative",
+    "severity": 5,
+    "category": "Attendance"
+  },
+  {
+    "incident": "No Organiser",
+    "type": "Negative",
+    "severity": 5,
+    "category": "Uniform & Equipment"
+  },
+  {
+    "incident": "Key 5 Disrupting the learning of others",
+    "type": "Negative",
+    "severity": 5,
+    "category": "Key 5"
+  },
+  {
+    "incident": "Key 5 Defiance/Refusal to follow instructions",
+    "type": "Negative",
+    "severity": 5,
+    "category": "Key 5"
+  }
+]
